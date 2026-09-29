@@ -8,7 +8,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async_add_entities([TempoVivoSensor(entry)])
 
 class TempoVivoSensor(SensorEntity):
-    _attr_name = "Tempo Vivo"
+    _attr_name = None
     _attr_icon = "mdi:weather-partly-cloudy"
     _attr_has_entity_name = True
 
