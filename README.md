@@ -11,7 +11,7 @@ Após publicar este código num repositório GitHub público, em HACS abra o men
 1. Copie `custom_components/tempo_vivo` para `<config>/custom_components/tempo_vivo`.
 2. Reinicie o Home Assistant.
 3. Em **Configurações → Dispositivos e serviços → Adicionar integração → Tempo Vivo**, selecione a entidade `weather` e, opcionalmente, sensores de temperatura, umidade, vento, pressão, visibilidade, nascer/pôr do sol e alerta binário de calor.
-4. No dashboard, abra **Editar painel → menu ⋮ → Recursos → Adicionar recurso**. URL: `/tempo_vivo/tempo-vivo-card.js`; tipo: **Módulo JavaScript**. Atualize a página.
+4. **Obrigatório para o card aparecer:** no dashboard, abra **Editar painel → menu ⋮ → Recursos → Adicionar recurso**. URL: `/tempo_vivo/tempo-vivo-card.js`; tipo: **Módulo JavaScript**. Atualize a página.
 5. Encontre a entidade criada pela integração em **Configurações → Dispositivos e serviços → Tempo Vivo → Entidades**. O ID costuma ser `sensor.tempo_vivo`, mas pode receber sufixo. Adicione um card manual:
 
 ```yaml
@@ -45,6 +45,19 @@ Valores ausentes aparecem como `—` ou ficam ocultos. Para nascer e pôr do sol
 
 ## Atualização
 
-Substitua a pasta da integração, reinicie o Home Assistant e atualize o painel. Se o navegador mantiver o card antigo, recarregue sem cache ou acrescente `?v=2` à URL do recurso.
+Substitua a pasta da integração, reinicie o Home Assistant e atualize o painel. Se o navegador mantiver o card antigo, recarregue sem cache ou acrescente `?v=101` à URL do recurso.
 
 Este projeto lê entidades existentes; não cria uma fonte meteorológica nem uma previsão nova. As transições ocorrem quando o Home Assistant atualiza a entidade `weather`. Instalação e funcionamento em uma instância real ainda precisam ser validados.
+
+## O sensor aparece, mas o card animado não aparece
+
+Na janela **Adicionar ao dashboard**, pesquisar por `Tempo Vivo` na lista de entidades mostra o sensor e sugestões de cards comuns (Bloco, Bubble Card etc.). Isso não carrega automaticamente o card animado. Primeiro registre `/tempo_vivo/tempo-vivo-card.js` em **Editar painel → ⋮ → Recursos → Adicionar recurso**, escolhendo **Módulo JavaScript**. Recarregue a página com Ctrl+F5. Em **Adicionar cartão**, procure **Tempo Vivo** na lista de cartões, ou selecione **Manual** e cole:
+
+```yaml
+type: custom:tempo-vivo-card
+entity: sensor.tempo_vivo
+```
+
+Confira o ID exato do sensor na página de entidades, pois pode ser `sensor.tempo_vivo_2`. Se aparecer **Custom element doesn't exist: tempo-vivo-card**, o recurso JavaScript não foi carregado: confira a URL e atualize sem cache. O nome repetido do sensor foi corrigido nesta versão; atualize a integração e reinicie o Home Assistant.
+
+A imagem de prévia é uma ilustração; as nuvens, luz e chuva do card são desenhadas em CSS e podem variar conforme a largura do painel e o navegador.
