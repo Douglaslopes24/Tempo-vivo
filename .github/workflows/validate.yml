@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python3 tests/test_sources.py
+      - run: python3 -m unittest discover -s tests -p 'test_*.py'
       - run: python3 -m compileall -q custom_components
   browser:
     runs-on: ubuntu-latest
@@ -59,7 +59,7 @@ jobs:
               await github.rest.repos.createRelease({
                 ...context.repo, tag_name: tag, target_commitish: context.sha,
                 name: `Tempo Vivo ${version}`,
-                body: 'Card reconstruído: carregamento automático, editor gráfico, sensores por cômodo e transições de céu em Canvas. Consulte o README para migrar da versão 1. Verificado em navegador e por Hassfest.',
+                body: 'Corrige o erro Custom element doesn’t exist: tempo-vivo-card. A integração registra o módulo nos recursos Lovelace, atualiza sua URL e preserva recursos de outros cards. Atualize no HACS, reinicie o Home Assistant e recarregue o painel. Consulte o README para o recurso manual e para painéis YAML. Verificado com testes de instalação e de navegador e Hassfest.',
                 draft: false, prerelease: false
               });
             }

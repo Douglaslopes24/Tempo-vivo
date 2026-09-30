@@ -1,28 +1,22 @@
-"""Tempo Vivo: existing weather/sensors and an automatically loaded dashboard card."""
-from pathlib import Path
-
-from homeassistant.components.frontend import add_extra_js_url
-from homeassistant.components.http import StaticPathConfig
+"""Tempo Vivo: existing weather/sensors and a registered dashboard card."""
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN, VERSION
+from .frontend import async_setup_frontend
 
 PLATFORMS = [Platform.SENSOR]
-CARD_URL = "/tempo_vivo/tempo-vivo-card.js"
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    """Serve the packaged card and load it without editing Lovelace resources."""
-    await hass.http.async_register_static_paths([
-        StaticPathConfig(CARD_URL, str(Path(__file__).parent / "tempo-vivo-card.js"), False)
-    ])
-    add_extra_js_url(hass, f"{CARD_URL}?v={VERSION}")
+    """Serve the packaged module and register it in Lovelace resources."""
+    await async_setup_frontend(hass)
     return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    # Also repair a missing resource when the integration is reloaded.
+    await async_setup_frontend(hass)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_update_entry))
     return True

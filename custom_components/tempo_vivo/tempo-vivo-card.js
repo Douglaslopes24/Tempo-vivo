@@ -1,8 +1,8 @@
-/* Tempo Vivo 2.0.0 — Home Assistant card. MIT. No CDN or runtime dependency. */
+/* Tempo Vivo 2.0.1 — Home Assistant card. MIT. No CDN or runtime dependency. */
 (() => {
   'use strict';
   if (customElements.get('tempo-vivo-card')) return;
-  const VERSION = '2.0.0';
+  const VERSION = '2.0.1';
   const INVALID = new Set(['unknown', 'unavailable', '', 'None']);
   const CONDITIONS = {
     sunny: 'Ensolarado', 'clear-night': 'Céu limpo', partlycloudy: 'Parcialmente nublado',

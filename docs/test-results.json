@@ -1,4 +1,27 @@
 {
+  "version": "2.0.1",
+  "moduleChecks": [
+    {
+      "name": "Módulo externo registra tempo-vivo-card",
+      "ok": true
+    },
+    {
+      "name": "Editor do card é registrado",
+      "ok": true
+    },
+    {
+      "name": "Card aparece na lista customCards",
+      "ok": true
+    },
+    {
+      "name": "YAML mínimo com entidade weather renderiza o clima",
+      "ok": true
+    },
+    {
+      "name": "Carregamento duplicado não quebra o registro",
+      "ok": true
+    }
+  ],
   "result": {
     "cases": [
       {

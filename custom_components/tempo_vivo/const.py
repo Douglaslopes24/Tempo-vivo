@@ -1,6 +1,8 @@
 """Shared configuration keys."""
 DOMAIN = "tempo_vivo"
-VERSION = "2.0.0"
+VERSION = "2.0.1"
+CARD_URL = "/tempo_vivo/tempo-vivo-card.js"
+CARD_RESOURCE_URL = f"{CARD_URL}?v={VERSION}"
 FIELDS = (
     "weather", "indoor_temperature", "indoor_humidity", "outdoor_temperature",
     "outdoor_humidity", "wind", "pressure", "visibility", "sunrise", "sunset",

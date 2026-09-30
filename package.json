@@ -1,6 +1,6 @@
 {
   "name": "tempo-vivo-card",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "private": true,
   "scripts": {
     "check": "node --check custom_components/tempo_vivo/tempo-vivo-card.js",
