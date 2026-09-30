@@ -1,0 +1,11 @@
+{
+  "name": "tempo-vivo-card",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "check": "node --check custom_components/tempo_vivo/tempo-vivo-card.js",
+    "build:demo": "python3 tools/build_demo.py",
+    "test": "node tests/browser-check.cjs"
+  },
+  "devDependencies": { "playwright": "^1.56.0" }
+}

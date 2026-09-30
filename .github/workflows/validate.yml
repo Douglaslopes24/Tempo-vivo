@@ -1,0 +1,65 @@
+name: Validate and release Tempo Vivo
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  hassfest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: home-assistant/actions/hassfest@master
+  sources:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tests/test_sources.py
+      - run: python3 -m compileall -q custom_components
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install
+      - run: npm run check
+      - run: python3 tools/build_demo.py
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tempo-vivo-browser-check
+          path: |
+            docs/test-results.json
+            docs/card-*.png
+            docs/editor.png
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [hassfest, sources, browser]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const version = JSON.parse(fs.readFileSync('custom_components/tempo_vivo/manifest.json')).version;
+            const tag = `v${version}`;
+            try {
+              await github.rest.repos.getReleaseByTag({...context.repo, tag});
+              core.info(`Release ${tag} already exists`);
+            } catch (e) {
+              if (e.status !== 404) throw e;
+              await github.rest.repos.createRelease({
+                ...context.repo, tag_name: tag, target_commitish: context.sha,
+                name: `Tempo Vivo ${version}`,
+                body: 'Card reconstruído: carregamento automático, editor gráfico, sensores por cômodo e transições de céu em Canvas. Consulte o README para migrar da versão 1. Verificado em navegador e por Hassfest.',
+                draft: false, prerelease: false
+              });
+            }

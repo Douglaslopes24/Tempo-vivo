@@ -1,1 +1,50 @@
-{"config":{"step":{"user":{"title":"Tempo Vivo","description":"Escolha sua entidade meteorológica e os sensores da casa. Todos os sensores extras são opcionais.","data":{"weather":"Clima (obrigatório)","indoor_temperature":"Temperatura da casa","indoor_humidity":"Umidade da casa","outdoor_temperature":"Temperatura externa","outdoor_humidity":"Umidade externa","wind":"Velocidade do vento","pressure":"Pressão atmosférica","visibility":"Visibilidade","sunrise":"Nascer do sol (sensor)","sunset":"Pôr do sol (sensor)","heat_alert":"Alerta de calor (sensor binário)"}}}},"options":{"step":{"init":{"title":"Sensores do Tempo Vivo","data":{"weather":"Clima","indoor_temperature":"Temperatura da casa","indoor_humidity":"Umidade da casa","outdoor_temperature":"Temperatura externa","outdoor_humidity":"Umidade externa","wind":"Vento","pressure":"Pressão","visibility":"Visibilidade","sunrise":"Nascer do sol","sunset":"Pôr do sol","heat_alert":"Alerta de calor"}}}}}
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Tempo Vivo",
+        "description": "Selecione sua entidade weather e os sensores da casa. O card será carregado automaticamente depois de reiniciar e atualizar o navegador.",
+        "data": {
+          "weather": "Entidade de clima",
+          "indoor_temperature": "Temperatura da casa",
+          "indoor_humidity": "Umidade interna",
+          "outdoor_temperature": "Temperatura externa",
+          "outdoor_humidity": "Umidade externa",
+          "wind": "Vento",
+          "pressure": "Pressão",
+          "visibility": "Visibilidade",
+          "sunrise": "Nascer do sol",
+          "sunset": "Pôr do sol",
+          "heat_alert": "Alerta de onda de calor",
+          "rain_sensor": "Sensor de chuva",
+          "storm_alert": "Alerta de temporal",
+          "feels_like": "Sensação térmica"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Sensores do Tempo Vivo",
+        "description": "Altere ou remova os sensores opcionais.",
+        "data": {
+          "weather": "Entidade de clima",
+          "indoor_temperature": "Temperatura da casa",
+          "indoor_humidity": "Umidade interna",
+          "outdoor_temperature": "Temperatura externa",
+          "outdoor_humidity": "Umidade externa",
+          "wind": "Vento",
+          "pressure": "Pressão",
+          "visibility": "Visibilidade",
+          "sunrise": "Nascer do sol",
+          "sunset": "Pôr do sol",
+          "heat_alert": "Alerta de onda de calor",
+          "rain_sensor": "Sensor de chuva",
+          "storm_alert": "Alerta de temporal",
+          "feels_like": "Sensação térmica"
+        }
+      }
+    }
+  }
+}

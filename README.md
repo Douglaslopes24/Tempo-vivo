@@ -1,63 +1,126 @@
-# Tempo Vivo para Home Assistant
+# Tempo Vivo 2
 
-Card de clima animado com transições fluidas entre sol, nuvens, chuva, temporal, neve, neblina, vento e calor. A parte inferior mostra **temperatura da casa**, em lugar da previsão de vários dias. Usa entidades locais; não exige conta, chave de API ou serviço externo.
+Card animado para Home Assistant: clima atual em cima, **temperatura e umidade da casa embaixo**. Sem faixa de previsão dos próximos dias.
 
-## Instalação via HACS (repositório personalizado)
+![Card real em chuva](docs/card-chuva.webp)
 
-Após publicar este código num repositório GitHub público, em HACS abra o menu de repositórios personalizados, cole a URL e selecione a categoria **Integração**. Instale Tempo Vivo e reinicie o Home Assistant. Depois siga os passos 3 a 5 abaixo. O arquivo do card já acompanha a integração.
+## O que mudou na versão 2
+
+- Céu desenhado em Canvas: sol, lua, estrelas, nuvens, chuva, temporal, neve, granizo, neblina, vento e efeito de calor.
+- Transições de 3 segundos: nuvens chegam antes da chuva; a chuva para antes de as nuvens saírem. Atualizações de sensores preservam a cena.
+- O card é carregado automaticamente pela integração. Não é necessário cadastrar um recurso Lovelace numa instalação nova.
+- Editor gráfico para selecionar entidades, tema, animações, limite de calor e temperaturas por cômodo.
+- A entidade `weather` pode ser usada diretamente; o sensor da integração continua funcionando.
+- Valores indisponíveis, sensores removidos e diferenças entre °C e °F são tratados.
+- A animação pausa fora da tela e segue a preferência de movimento reduzido do navegador.
+
+## Instalar pelo HACS
+
+Requer Home Assistant 2024.8 ou posterior e um navegador moderno.
+
+1. No HACS, abra **Repositórios personalizados** e adicione `https://github.com/Douglaslopes24/Tempo-vivo`, categoria **Integração**.
+2. Baixe **Tempo Vivo** e reinicie o Home Assistant.
+3. Em **Configurações → Dispositivos e serviços → Adicionar integração**, procure **Tempo Vivo**. Selecione a entidade de clima e, se quiser, os sensores da casa.
+4. Recarregue o navegador. Em **Editar painel → Adicionar cartão**, procure **Tempo Vivo** e selecione as entidades no editor.
+5. Em Home Assistant 2026.6 ou posterior, o card também é sugerido ao selecionar uma entidade `weather` ou o sensor da integração.
+
+## Atualizar a versão 1
+
+1. No HACS, use **Atualizar** ou **Baixar novamente** para obter a versão 2.
+2. Se você cadastrou o recurso `/tempo_vivo/tempo-vivo-card.js` na versão anterior, remova **somente esse recurso** de **Configurações → Painéis → Recursos**. A integração agora carrega o módulo automaticamente com a versão na URL.
+3. Reinicie o Home Assistant e recarregue com Ctrl+F5. No aplicativo, feche e abra o painel se necessário.
+4. Adicione o cartão **Tempo Vivo**, ou edite o cartão existente. O sensor agregado da instalação anterior continua sendo aceito, mesmo que seu ID tenha o nome repetido.
+
+## YAML mínimo
+
+Pode usar a entidade meteorológica diretamente:
+
+```yaml
+type: custom:tempo-vivo-card
+entity: weather.sua_casa
+indoor_temperature: sensor.temperatura_da_casa
+indoor_humidity: sensor.umidade_da_casa
+```
+
+Ou o sensor agregado criado pela integração:
+
+```yaml
+type: custom:tempo-vivo-card
+entity: sensor.tempo_vivo
+```
+
+Troque os exemplos pelos IDs reais. O seletor tenta encontrar a entidade automaticamente.
+
+## Opções
+
+| Opção | Função | Padrão |
+| --- | --- | --- |
+| `entity` | Entidade `weather` ou sensor Tempo Vivo | Obrigatória |
+| `title` | Título | `Tempo agora` |
+| `location` | Nome do local | Nome da entidade de clima |
+| `theme` | `auto`, `dark`, `light` | `auto` |
+| `animation` | Ativar movimento | `true` |
+| `heat_threshold` | Limite de calor **em °C**; use `false` para desligar | `35` |
+| `indoor_temperature` | Sensor de temperatura interna | Seleção da integração |
+| `indoor_humidity` | Sensor de umidade interna | Seleção da integração |
+| `outdoor_temperature`, `outdoor_humidity` | Sensores externos que substituem os dados da entidade weather | Entidade weather |
+| `wind`, `pressure`, `visibility`, `feels_like` | Sensores de medidas atuais | Entidade weather |
+| `sun_entity` | Entidade de posição e horários do sol | `sun.sun` |
+| `sunrise`, `sunset` | Sensores de horário alternativos | `sun.sun` |
+| `rain_sensor` | Sensor binário de chuva; `on` ativa a cena de chuva | Opcional |
+| `storm_alert` | Sensor binário de temporal; `on` ativa a cena de temporal | Opcional |
+| `heat_alert` | Sensor binário de onda de calor; `on` mostra o alerta | Opcional |
+| `rooms` | Lista de sensores por cômodo | Opcional |
+| `weather_entity` | Origem meteorológica explícita, usada com o agregado | Opcional |
+
+Temperaturas são convertidas para a unidade do painel. O limite numérico exibe **Calor intenso**; **Onda de calor** é mostrado quando o sensor de alerta configurado fica `on`. Chuva, temporal e neve têm prioridade visual sobre o efeito de calor. O card acompanha o estado fornecido pelo Home Assistant; não prevê sozinho o começo da chuva.
+
+```yaml
+type: custom:tempo-vivo-card
+entity: weather.sua_casa
+title: Tempo agora
+location: Minha casa
+indoor_temperature: sensor.temperatura_da_casa
+indoor_humidity: sensor.umidade_da_casa
+heat_threshold: 35
+animation: true
+theme: dark
+rooms:
+  - name: Sala
+    entity: sensor.temperatura_sala
+  - name: Quarto
+    entity: sensor.temperatura_quarto
+    humidity_entity: sensor.umidade_quarto
+```
+
+## Demonstração do código real
+
+Baixe [demo.html](demo.html) e abra no navegador. É um arquivo completo e funciona sem Home Assistant. Os botões simulam as mudanças de clima e o editor usa os mesmos componentes do card instalado. Os valores são de demonstração.
+
+![Card no celular](docs/card-celular.webp)
 
 ## Instalação manual
 
-1. Copie `custom_components/tempo_vivo` para `<config>/custom_components/tempo_vivo`.
-2. Reinicie o Home Assistant.
-3. Em **Configurações → Dispositivos e serviços → Adicionar integração → Tempo Vivo**, selecione a entidade `weather` e, opcionalmente, sensores de temperatura, umidade, vento, pressão, visibilidade, nascer/pôr do sol e alerta binário de calor.
-4. **Obrigatório para o card aparecer:** no dashboard, abra **Editar painel → menu ⋮ → Recursos → Adicionar recurso**. URL: `/tempo_vivo/tempo-vivo-card.js`; tipo: **Módulo JavaScript**. Atualize a página.
-5. Encontre a entidade criada pela integração em **Configurações → Dispositivos e serviços → Tempo Vivo → Entidades**. O ID costuma ser `sensor.tempo_vivo`, mas pode receber sufixo. Adicione um card manual:
+Copie `custom_components/tempo_vivo` para `<config>/custom_components/tempo_vivo`. Reinicie, adicione a integração e recarregue o navegador. O JavaScript acompanha a pasta da integração.
 
-```yaml
-type: custom:tempo-vivo-card
-entity: sensor.tempo_vivo
-title: Tempo em casa
-heat_threshold: 35
-```
+Para usar somente o JavaScript, copie `tempo-vivo-card.js` para `<config>/www/`, registre `/local/tempo-vivo-card.js` como **Módulo JavaScript** e configure uma entidade `weather` diretamente.
 
-O limite de calor usa a mesma unidade numérica da temperatura externa. Um `binary_sensor` de alerta de calor também pode ativar o efeito. Chuva e temporal têm prioridade sobre o alerta.
+## Se o card não aparecer
 
-## Opções do card
+- Confira se a integração **Tempo Vivo** foi adicionada e carregada, além de instalada no HACS.
+- Recarregue o navegador depois de adicionar a integração. Remova o antigo recurso manual do Tempo Vivo se estiver migrando da versão 1.
+- Em um card Manual, use `type: custom:tempo-vivo-card`.
+- Para confirmar o arquivo está disponível, abra `/tempo_vivo/tempo-vivo-card.js?v=2.0.0` no mesmo endereço do seu Home Assistant. Deve aparecer JavaScript.
+- Se houver falha no carregamento da integração, consulte **Configurações → Sistema → Registros**.
 
-| Opção | Função |
-| --- | --- |
-| `entity` | Sensor agregado da integração (obrigatório) |
-| `title` | Título da parte superior |
-| `heat_threshold` | Limite para calor (padrão: 35; `false` desativa) |
-| `weather_entity` | Outra entidade de clima neste card |
-| `indoor_temperature`, `indoor_humidity`, `outdoor_temperature`, `outdoor_humidity`, `wind`, `pressure`, `visibility`, `sunrise`, `sunset`, `heat_alert` | Entidades opcionais que substituem a configuração da integração neste card |
+## Verificação
 
-```yaml
-type: custom:tempo-vivo-card
-entity: sensor.tempo_vivo
-title: Sala
-indoor_temperature: sensor.temperatura_sala
-indoor_humidity: sensor.umidade_sala
-```
+O card foi executado em Chromium isolado com estados simulados do Home Assistant: 18 verificações passaram, incluindo transições, editor, dados indisponíveis, conversão de unidades e atualização ao vivo. Também foi inspecionado com 780 e 320 pixels de largura. As capturas deste README vêm do código real. O comportamento numa instância particular depende das entidades e da versão do Home Assistant; não houve acesso à instalação do usuário.
 
-Valores ausentes aparecem como `—` ou ficam ocultos. Para nascer e pôr do sol, adicione sensores de horário, caso os tenha. As animações respeitam a preferência de movimento reduzido do navegador.
+Para repetir: `python3 tools/build_demo.py`, `python3 tests/test_sources.py`, `npm install`, `npx playwright install chromium` e `npm test`. CI executa o navegador e Hassfest.
 
-## Atualização
+## Referências de estrutura
 
-Substitua a pasta da integração, reinicie o Home Assistant e atualize o painel. Se o navegador mantiver o card antigo, recarregue sem cache ou acrescente `?v=101` à URL do recurso.
+Foram consultados [Clock Weather Card](https://github.com/pkissling/clock-weather-card), [Dynamic Weather Card](https://github.com/teuchezh/dynamic-weather-card) e a [documentação de custom cards do Home Assistant](https://developers.home-assistant.io/docs/frontend/custom-ui/custom-card/). A implementação usa componentes próprios e não carrega bibliotecas, imagens ou scripts externos no painel.
 
-Este projeto lê entidades existentes; não cria uma fonte meteorológica nem uma previsão nova. As transições ocorrem quando o Home Assistant atualiza a entidade `weather`. Instalação e funcionamento em uma instância real ainda precisam ser validados.
-
-## O sensor aparece, mas o card animado não aparece
-
-Na janela **Adicionar ao dashboard**, pesquisar por `Tempo Vivo` na lista de entidades mostra o sensor e sugestões de cards comuns (Bloco, Bubble Card etc.). Isso não carrega automaticamente o card animado. Primeiro registre `/tempo_vivo/tempo-vivo-card.js` em **Editar painel → ⋮ → Recursos → Adicionar recurso**, escolhendo **Módulo JavaScript**. Recarregue a página com Ctrl+F5. Em **Adicionar cartão**, procure **Tempo Vivo** na lista de cartões, ou selecione **Manual** e cole:
-
-```yaml
-type: custom:tempo-vivo-card
-entity: sensor.tempo_vivo
-```
-
-Confira o ID exato do sensor na página de entidades, pois pode ser `sensor.tempo_vivo_2`. Se aparecer **Custom element doesn't exist: tempo-vivo-card**, o recurso JavaScript não foi carregado: confira a URL e atualize sem cache. O nome repetido do sensor foi corrigido nesta versão; atualize a integração e reinicie o Home Assistant.
-
-A imagem de prévia é uma ilustração; as nuvens, luz e chuva do card são desenhadas em CSS e podem variar conforme a largura do painel e o navegador.
+Licença MIT.

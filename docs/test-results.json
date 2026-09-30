@@ -1,0 +1,84 @@
+{
+  "result": {
+    "cases": [
+      {
+        "name": "Clima e temperatura interna separados",
+        "ok": true
+      },
+      {
+        "name": "Zero graus e zero umidade continuam visíveis",
+        "ok": true
+      },
+      {
+        "name": "Fahrenheit convertido para a unidade do painel",
+        "ok": true
+      },
+      {
+        "name": "Sensor indisponível mostra traço e aviso",
+        "ok": true
+      },
+      {
+        "name": "Recuperação do sensor atualiza o card",
+        "ok": true
+      },
+      {
+        "name": "Atualizações não recriam a cena",
+        "ok": true
+      },
+      {
+        "name": "Clima indisponível não exibe estado antigo",
+        "ok": true
+      },
+      {
+        "name": "Chuva mantém cena de chuva mesmo com calor",
+        "ok": true
+      },
+      {
+        "name": "Calor intenso muda a cena",
+        "ok": true
+      },
+      {
+        "name": "Limite de calor pode ser desligado",
+        "ok": true
+      },
+      {
+        "name": "Sugestão para weather e recusa de entidade incompatível",
+        "ok": true
+      },
+      {
+        "name": "Configuração inicial encontra entidade weather",
+        "ok": true
+      },
+      {
+        "name": "Temperatura de cômodo funciona",
+        "ok": true
+      },
+      {
+        "name": "Clique abre a entidade correta",
+        "ok": true
+      },
+      {
+        "name": "Editor emite configuração para Home Assistant",
+        "ok": true
+      },
+      {
+        "name": "Nuvens chegam antes da chuva",
+        "ok": true
+      },
+      {
+        "name": "Transição termina no clima solicitado",
+        "ok": true
+      },
+      {
+        "name": "Remover o card interrompe a animação",
+        "ok": true
+      }
+    ],
+    "passed": true
+  },
+  "errors": [],
+  "mobileOverflow": {
+    "width": 320,
+    "scroll": 318
+  }
+}
