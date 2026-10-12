@@ -3,6 +3,7 @@ import asyncio
 from copy import deepcopy
 from dataclasses import dataclass
 import importlib.util
+import json
 from pathlib import Path
 import sys
 from types import ModuleType, SimpleNamespace
@@ -10,7 +11,8 @@ import unittest
 from unittest.mock import patch
 
 COMPONENT = Path(__file__).parents[1] / "custom_components/tempo_vivo"
-URL = "/tempo_vivo/tempo-vivo-card.js?v=2.0.1"
+VERSION = json.loads((COMPONENT / "manifest.json").read_text())["version"]
+URL = f"/tempo_vivo/tempo-vivo-card.js?v={VERSION}"
 OTHER = {"id": "other", "url": "/hacsfiles/bubble-card/bubble-card.js", "type": "module"}
 
 spec = importlib.util.spec_from_file_location("tv_resources", COMPONENT / "resources.py")

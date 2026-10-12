@@ -1,5 +1,5 @@
 {
-  "version": "2.0.1",
+  "version": "2.1.0",
   "moduleChecks": [
     {
       "name": "Módulo externo registra tempo-vivo-card",
@@ -85,11 +85,71 @@
         "ok": true
       },
       {
+        "name": "Editor salva a qualidade escolhida",
+        "ok": true
+      },
+      {
+        "name": "Editor salva a duração escolhida",
+        "ok": true
+      },
+      {
         "name": "Nuvens chegam antes da chuva",
         "ok": true
       },
       {
         "name": "Transição termina no clima solicitado",
+        "ok": true
+      },
+      {
+        "name": "Chuva começa a parar antes de as nuvens saírem",
+        "ok": true
+      },
+      {
+        "name": "Chuva termina durante a abertura do céu",
+        "ok": true
+      },
+      {
+        "name": "Texturas de céu são compartilhadas entre cards",
+        "ok": true
+      },
+      {
+        "name": "Nuvens têm sombra, luz e contorno transparente",
+        "ok": true
+      },
+      {
+        "name": "Velocidade do vento aceita m/s e km/h",
+        "ok": true
+      },
+      {
+        "name": "Direção do vento muda a inclinação da chuva",
+        "ok": true
+      },
+      {
+        "name": "Modo leve reduz partículas e resolução",
+        "ok": true
+      },
+      {
+        "name": "Modo detalhado permite até 60 fps",
+        "ok": true
+      },
+      {
+        "name": "Duração configurada é aplicada à transição",
+        "ok": true
+      },
+      {
+        "name": "Chuva muda de posição entre quadros",
+        "ok": true
+      },
+      {
+        "name": "Calor distorce a luz entre quadros",
+        "ok": true
+      },
+      {
+        "name": "Movimento reduzido finaliza a transição e pausa a cena",
+        "ok": true
+      },
+      {
+        "name": "Cena pausada mantém a posição das partículas",
         "ok": true
       },
       {
@@ -103,5 +163,12 @@
   "mobileOverflow": {
     "width": 320,
     "scroll": 318
+  },
+  "performanceReport": {
+    "scene": "temporal",
+    "quality": "high",
+    "frames": 90,
+    "medianMs": 0.3,
+    "p95Ms": 0.6
   }
 }

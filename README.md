@@ -1,13 +1,27 @@
-# Tempo Vivo 2
+# Tempo Vivo 2.1
 
 Card animado para Home Assistant: clima atual em cima, **temperatura e umidade da casa embaixo**. Sem faixa de previsão dos próximos dias.
 
 ![Card real em chuva](docs/card-chuva.webp)
 
-## O que mudou na versão 2
+## Animações mais naturais na versão 2.1
+
+- Nuvens com volume, bordas suaves, textura e sombras internas. A luz atravessa um volume calculado uma vez e reutilizado durante a animação.
+- Camadas de nuvens em velocidades diferentes; o movimento acompanha o vento.
+- Chuva com gotas finas ao fundo e maiores em primeiro plano, inclinação pelo vento e pequenos respingos.
+- Sol com halo atmosférico, lua com crateras e estrelas discretas.
+- Temporal com raios ramificados, clarão no céu e intervalos variáveis entre descargas.
+- Calor com distorção do ar; neve, granizo e neblina têm movimentos próprios.
+- Qualidade **Leve**, **Equilibrada** ou **Detalhada** e duração da transição no editor visual. A animação pausa quando o card sai da tela.
+
+![Temporal no card real](docs/card-temporal.webp)
+
+Veja a [animação do código real](docs/animacao-realista.mp4) ou abra a [demonstração interativa](demo.html).
+
+## Recursos do card
 
 - Céu desenhado em Canvas: sol, lua, estrelas, nuvens, chuva, temporal, neve, granizo, neblina, vento e efeito de calor.
-- Transições de 3 segundos: nuvens chegam antes da chuva; a chuva para antes de as nuvens saírem. Atualizações de sensores preservam a cena.
+- Transições de 4,5 segundos por padrão, ajustáveis entre 2 e 12 segundos: nuvens chegam antes da chuva; a chuva para antes de as nuvens saírem. Atualizações de sensores preservam a cena.
 - A partir de **2.0.1**, a integração cadastra o JavaScript como recurso Lovelace em painéis gerenciados pela interface. Atualizações trocam a versão da URL; recursos de outros cards são preservados. Painéis com recursos gerenciados por YAML usam o cadastro abaixo.
 - Editor gráfico para selecionar entidades, tema, animações, limite de calor e temperaturas por cômodo.
 - A entidade `weather` pode ser usada diretamente; o sensor da integração continua funcionando.
@@ -26,7 +40,7 @@ Requer Home Assistant 2024.8 ou posterior e um navegador moderno.
 
 ## Atualizar versões anteriores / corrigir o card ausente
 
-1. No HACS, use **Atualizar** ou **Baixar novamente** e selecione **2.0.1** ou uma versão posterior.
+1. No HACS, use **Atualizar** ou **Baixar novamente** e selecione **2.1.0** ou uma versão posterior.
 2. Mantenha o recurso `/tempo_vivo/tempo-vivo-card.js` se ele já existir. A integração atualiza esse cadastro. A orientação anterior de removê-lo foi substituída por este procedimento.
 3. Reinicie o Home Assistant e recarregue com Ctrl+F5. No aplicativo, feche e abra o painel se necessário.
 4. Adicione o cartão **Tempo Vivo**, ou edite o cartão existente. O sensor agregado da instalação anterior continua sendo aceito, mesmo que seu ID tenha o nome repetido.
@@ -39,7 +53,7 @@ Depois de atualizar e reiniciar, confira **Configurações → Painéis → menu
 
 | Campo | Valor |
 | --- | --- |
-| URL | `/tempo_vivo/tempo-vivo-card.js?v=2.0.1` |
+| URL | `/tempo_vivo/tempo-vivo-card.js?v=2.1.0` |
 | Tipo | **Módulo JavaScript** |
 
 Se faltar, adicione esse recurso. Se já existir com uma URL antiga, edite o mesmo cadastro. Recarregue o painel com Ctrl+F5 e adicione um cartão **Manual** com:
@@ -51,7 +65,7 @@ entity: weather.forecast_casa
 
 `weather.forecast_casa` é um exemplo; use o ID da sua entidade de clima. Depois de salvar, o editor visual do card permite escolher o sensor de temperatura da casa.
 
-Para verificar a instalação, abra `/tempo_vivo/tempo-vivo-card.js?v=2.0.1` no mesmo endereço e porta do seu Home Assistant. Deve aparecer o código JavaScript. **404** indica que o arquivo não está sendo servido: confirme que a integração foi adicionada em **Dispositivos e serviços**, reinicie o Home Assistant e consulte os registros de `custom_components.tempo_vivo`. Baixar no HACS sozinho não ativa a integração.
+Para verificar a instalação, abra `/tempo_vivo/tempo-vivo-card.js?v=2.1.0` no mesmo endereço e porta do seu Home Assistant. Deve aparecer o código JavaScript. **404** indica que o arquivo não está sendo servido: confirme que a integração foi adicionada em **Dispositivos e serviços**, reinicie o Home Assistant e consulte os registros de `custom_components.tempo_vivo`. Baixar no HACS sozinho não ativa a integração.
 
 ### Recursos gerenciados por YAML
 
@@ -61,7 +75,7 @@ Nesse modo a integração não altera seu arquivo de configuração. Acrescente 
 lovelace:
   mode: yaml
   resources:
-    - url: /tempo_vivo/tempo-vivo-card.js?v=2.0.1
+    - url: /tempo_vivo/tempo-vivo-card.js?v=2.1.0
       type: module
 ```
 
@@ -96,6 +110,8 @@ Troque os exemplos pelos IDs reais. O seletor tenta encontrar a entidade automat
 | `location` | Nome do local | Nome da entidade de clima |
 | `theme` | `auto`, `dark`, `light` | `auto` |
 | `animation` | Ativar movimento | `true` |
+| `animation_quality` | `low` (leve), `balanced` (equilibrada) ou `high` (detalhada) | `balanced` |
+| `transition_duration` | Duração da mudança de clima, entre 2 e 12 segundos | `4.5` |
 | `heat_threshold` | Limite de calor **em °C**; use `false` para desligar | `35` |
 | `indoor_temperature` | Sensor de temperatura interna | Seleção da integração |
 | `indoor_humidity` | Sensor de umidade interna | Seleção da integração |
@@ -120,6 +136,8 @@ indoor_temperature: sensor.temperatura_da_casa
 indoor_humidity: sensor.umidade_da_casa
 heat_threshold: 35
 animation: true
+animation_quality: balanced
+transition_duration: 4.5
 theme: dark
 rooms:
   - name: Sala
@@ -128,6 +146,10 @@ rooms:
     entity: sensor.temperatura_quarto
     humidity_entity: sensor.umidade_quarto
 ```
+
+### Qualidade do movimento
+
+**Equilibrada** usa até 30 quadros por segundo. **Detalhada** aumenta as camadas, gotas e resolução e permite até 60 quadros por segundo. **Leve** limita a resolução, reduz camadas e gotas e usa até 24 quadros por segundo; a distorção do calor é desativada nesse modo. O desempenho depende do aparelho e do navegador.
 
 ## Demonstração do código real
 
@@ -146,14 +168,14 @@ Para usar somente o JavaScript, copie `tempo-vivo-card.js` para `<config>/www/`,
 - Confira se a integração **Tempo Vivo** foi adicionada e carregada, além de instalada no HACS.
 - Confira o recurso **Módulo JavaScript** e recarregue o navegador depois de adicionar a integração, seguindo o procedimento acima.
 - Em um card Manual, use `type: custom:tempo-vivo-card`.
-- Para confirmar que o arquivo está disponível, abra `/tempo_vivo/tempo-vivo-card.js?v=2.0.1` no mesmo endereço do seu Home Assistant. Deve aparecer JavaScript.
+- Para confirmar que o arquivo está disponível, abra `/tempo_vivo/tempo-vivo-card.js?v=2.1.0` no mesmo endereço do seu Home Assistant. Deve aparecer JavaScript.
 - Se houver falha no carregamento da integração, consulte **Configurações → Sistema → Registros**.
 
 ## Verificação
 
-O card foi executado em Chromium isolado com estados simulados do Home Assistant: 18 verificações passaram, incluindo transições, editor, dados indisponíveis, conversão de unidades e atualização ao vivo. Também foi inspecionado com 780 e 320 pixels de largura. As capturas deste README vêm do código real. O comportamento numa instância particular depende das entidades e da versão do Home Assistant; não houve acesso à instalação do usuário.
+O card foi executado em Chromium isolado com estados simulados do Home Assistant: 33 verificações de estados e animações passaram, incluindo transições, editor, dados indisponíveis, conversão de unidades e atualização ao vivo. Também foi inspecionado com 780 e 320 pixels de largura. As capturas deste README vêm do código real. O comportamento numa instância particular depende das entidades e da versão do Home Assistant; não houve acesso à instalação do usuário.
 
-O cadastro do recurso tem 12 testes de regressão, incluindo início com armazenamento ainda não carregado, atualização, preservação de outros cards, múltiplas entradas, compatibilidade com versões antigas e fallback YAML. Há também 3 testes dos sensores. O teste de navegador verifica o arquivo externo como módulo, registro do editor, lista de cards, YAML mínimo e carregamento duplicado, além das 18 verificações visuais e de estados.
+O cadastro do recurso tem 12 testes de regressão, incluindo início com armazenamento ainda não carregado, atualização, preservação de outros cards, múltiplas entradas, compatibilidade com versões antigas e fallback YAML. Há também 3 testes dos sensores. O teste de navegador verifica o arquivo externo como módulo, registro do editor, lista de cards, YAML mínimo e carregamento duplicado, além das 33 verificações visuais e de estados.
 
 Para repetir: `python3 tools/build_demo.py`, `python3 -m unittest discover -s tests -p 'test_*.py'`, `npm install`, `npx playwright install chromium` e `npm test`. CI executa o navegador e Hassfest. Os testes usam interfaces e estados simulados; não verificam a instalação particular do usuário.
 

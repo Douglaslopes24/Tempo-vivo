@@ -1,12 +1,12 @@
 <!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tempo Vivo — demonstração do card</title>
 <style>
 :root{font-family:Arial,sans-serif;color:#dae6f2;background:#071522;color-scheme:dark}*{box-sizing:border-box}body{margin:0;padding:36px 24px 60px}main{max-width:940px;margin:auto}h1{font-size:28px;font-weight:450;margin:0 0 8px}p{font-size:14px;color:#9bb1c8;line-height:1.65;margin:0 0 23px}.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:23px}.toolbar button,.settings button{background:#142e46;color:#d9e8f6;border:1px solid #48627c66;padding:10px 14px;border-radius:10px;cursor:pointer;font:inherit;font-size:13px}button[aria-pressed=true]{background:#284c70;border-color:#80b5df}.card-wrap{width:780px;max-width:100%;margin:auto;transition:width .3s}.settings{display:flex;gap:15px;flex-wrap:wrap;align-items:center;margin:25px 0;font-size:12px;color:#a5bcd3}.settings select{padding:8px;border-radius:8px;background:#142e46;color:inherit;border:1px solid #45637f}#editor{max-width:780px;margin:24px auto;background:#152737;padding:20px;border-radius:12px}#editor[hidden]{display:none}#editor{--primary-text-color:#dfeaf4;--card-background-color:#1a3045;--divider-color:#45627a}.details{margin-top:28px;color:#91acc5;font-size:12px}#report{padding:16px;background:#102c36;border-radius:12px;line-height:1.7;color:#b8e9cd}#report:empty{display:none}.case{padding:5px 0;border-bottom:1px solid #44657833}.fail{color:#ffa4a4}footer{margin-top:23px;font-size:12px;color:#768fa8}@media(max-width:600px){body{padding:22px 12px}.toolbar{gap:6px}.toolbar button{font-size:12px;padding:9px 11px}h1{font-size:23px}}
-</style><main><h1>Tempo Vivo</h1><p>Esta demonstração usa o card real. Os dados abaixo são simulados. Escolha um clima para ver a transição.</p><div class="toolbar" id="weather-buttons"></div><div class="card-wrap"><tempo-vivo-card id="card"></tempo-vivo-card></div><div class="settings"><label>Largura <select id="width"><option value="780">Painel amplo</option><option value="440">Card normal</option><option value="320">Celular</option></select></label><label>Tema <select id="theme"><option value="dark">Escuro</option><option value="light">Claro</option></select></label><button id="rooms">Mostrar cômodos</button><button id="edit">Editar sensores</button><button id="update-temp">Atualizar temperatura</button></div><div id="editor" hidden></div><details class="details"><summary>Verificações do card</summary><p style="margin-top:15px">Teste de integração do componente com estados simulados do Home Assistant.</p><button id="run-tests">Executar verificações</button><div id="report" aria-live="polite"></div></details><footer>Versão 2.0.1 · Céu e partículas desenhados localmente · Animações respeitam movimento reduzido</footer></main>
-<script>/* Tempo Vivo 2.0.1 — Home Assistant card. MIT. No CDN or runtime dependency. */
+</style><main><h1>Tempo Vivo</h1><p>Esta demonstração usa o card real. Os dados abaixo são simulados. Escolha um clima para ver a transição.</p><div class="toolbar" id="weather-buttons"></div><div class="card-wrap"><tempo-vivo-card id="card"></tempo-vivo-card></div><div class="settings"><label>Largura <select id="width"><option value="780">Painel amplo</option><option value="440">Card normal</option><option value="320">Celular</option></select></label><label>Tema <select id="theme"><option value="dark">Escuro</option><option value="light">Claro</option></select></label><label>Qualidade <select id="quality"><option value="low">Leve</option><option value="balanced" selected>Equilibrada</option><option value="high">Detalhada</option></select></label><button id="rooms">Mostrar cômodos</button><button id="edit">Editar sensores</button><button id="update-temp">Atualizar temperatura</button></div><div id="editor" hidden></div><details class="details"><summary>Verificações do card</summary><p style="margin-top:15px">Teste de integração do componente com estados simulados do Home Assistant.</p><button id="run-tests">Executar verificações</button><div id="report" aria-live="polite"></div></details><footer>Versão 2.1.0 · Nuvens com volume · Chuva em profundidade · Céu desenhado localmente · Animações respeitam movimento reduzido</footer></main>
+<script>/* Tempo Vivo 2.1.0 — Home Assistant card. MIT. No CDN or runtime dependency. */
 (() => {
   'use strict';
   if (customElements.get('tempo-vivo-card')) return;
-  const VERSION = '2.0.1';
+  const VERSION = '2.1.0';
   const INVALID = new Set(['unknown', 'unavailable', '', 'None']);
   const CONDITIONS = {
     sunny: 'Ensolarado', 'clear-night': 'Céu limpo', partlycloudy: 'Parcialmente nublado',
@@ -48,159 +48,351 @@
   const rgb = (a, alpha = 1) => `rgba(${a.map(Math.round).join(',')},${alpha})`;
   function rng(seed) { return () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }; }
 
-  /* A persistent canvas interpolates weather layers; HA updates do not rebuild it. */
+  const WEATHER_QUALITY = {
+    low: { fps: 24, dpr: 1, particles: 70, clouds: 5 },
+    balanced: { fps: 30, dpr: 1.5, particles: 130, clouds: 7 },
+    high: { fps: 60, dpr: 2, particles: 200, clouds: 9 }
+  };
+  const wrap = (n, size) => ((n % size) + size) % size;
+  let weatherTextures = null;
+
+  function noise2(x, y, seed) {
+    const ix = Math.floor(x), iy = Math.floor(y), fx = smooth(x - ix), fy = smooth(y - iy);
+    const hash = (a, b) => {
+      let n = Math.imul(a, 374761393) ^ Math.imul(b, 668265263) ^ seed;
+      n = Math.imul(n ^ (n >>> 13), 1274126177);
+      return ((n ^ (n >>> 16)) >>> 0) / 4294967295;
+    };
+    return mix(mix(hash(ix, iy), hash(ix + 1, iy), fx), mix(hash(ix, iy + 1), hash(ix + 1, iy + 1), fx), fy);
+  }
+  function cloudTexture(seed) {
+    // Integrate light through a noisy cloud volume once. Cached sprites retain
+    // soft optical edges and internal shadows without per-frame ray marching.
+    const w = 448, h = 256, nx = 96, ny = 60, nz = 40, stride = nx * ny;
+    const density = new Float32Array(stride * nz), lighting = new Float32Array(density.length), rand = rng(seed);
+    const lobes = [[.18,.66,.15,.12,.13],[.35,.65,.21,.16,.17],[.56,.64,.22,.17,.18],[.78,.67,.16,.12,.14],
+      [.29,.49,.13,.19,.17],[.44,.40,.15,.24,.21],[.62,.48,.16,.19,.20],[.73,.55,.12,.14,.15],
+      [.38,.34,.095,.15,.14],[.52,.36,.11,.16,.16],[.24,.57,.10,.12,.14],[.68,.40,.08,.12,.12]];
+    for (const lobe of lobes) { lobe[0] += (rand() - .5) * .035; lobe[1] += (rand() - .5) * .06; lobe.push((rand() - .5) * .09); }
+    const hash = (a, b, c) => {
+      let n = Math.imul(a, 374761393) ^ Math.imul(b, 668265263) ^ Math.imul(c, 2246822519) ^ seed;
+      n = Math.imul(n ^ (n >>> 13), 1274126177); return ((n ^ (n >>> 16)) >>> 0) / 4294967295;
+    };
+    const noise = (x, y, z) => {
+      const ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z), fx = smooth(x - ix), fy = smooth(y - iy), fz = smooth(z - iz);
+      const plane = zz => mix(mix(hash(ix,iy,zz),hash(ix+1,iy,zz),fx),mix(hash(ix,iy+1,zz),hash(ix+1,iy+1,zz),fx),fy);
+      return mix(plane(iz), plane(iz + 1), fz);
+    };
+    for (let z = 0; z < nz; z++) for (let y = 0; y < ny; y++) for (let x = 0; x < nx; x++) {
+      const u = x / (nx - 1), v = y / (ny - 1), depth = z / (nz - 1) * .6 - .3;
+      if (v < .10 || v > .83 || u < .03 || u > .97) continue;
+      let shape = -1;
+      for (const [cx,cy,rx,ry,rz,cz] of lobes) shape = Math.max(shape, 1 - ((u-cx)/rx)**2 - ((v-cy)/ry)**2 - ((depth-cz)/rz)**2);
+      if (shape < -.2) continue;
+      const n = noise(u * 14, v * 12, depth * 15) * .6 + noise(u * 29, v * 25, depth * 31) * .28 + noise(u * 59, v * 51, depth * 63) * .12;
+      const base = smooth((.81 + (noise2(u * 18, depth * 12, seed) - .5) * .045 - v) / .045);
+      density[z * stride + y * nx + x] = clamp((shape + (n - .5) * .92 - .11) * 1.35) * base;
+    }
+    for (let z = 0; z < nz; z++) for (let y = 0; y < ny; y++) for (let x = 0; x < nx; x++) {
+      const at = z * stride + y * nx + x; if (density[at] === 0) continue;
+      let shadow = 0;
+      for (let step = 1; step < 15; step++) {
+        const sx = Math.round(x - step * .72), sy = Math.round(y - step * .87), sz = Math.round(z + step * .9);
+        if (sx < 0 || sy < 0 || sz >= nz) break;
+        shadow += density[sz * stride + sy * nx + sx] * .32;
+      }
+      lighting[at] = .50 + Math.exp(-shadow) * .50;
+    }
+    const images = ['day', 'storm', 'night'].map(() => {
+      const canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h;
+      return { canvas, ctx: canvas.getContext('2d'), data: new ImageData(w, h) };
+    });
+    for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+      const gx = x / (w - 1) * (nx - 1), gy = y / (h - 1) * (ny - 1), ix = Math.floor(gx), iy = Math.floor(gy), fx = gx - ix, fy = gy - iy;
+      const a = (1-fx)*(1-fy), b = fx*(1-fy), cc = (1-fx)*fy, d = fx*fy, pixel = (y * w + x) * 4;
+      let transmittance = 1, brightness = 0;
+      for (let z = nz - 1; z >= 0; z--) {
+        const at = z * stride + iy * nx + ix;
+        const rho = density[at]*a + density[at+1]*b + density[at+nx]*cc + density[at+nx+1]*d;
+        if (rho < .001) continue;
+        const light = (density[at]*lighting[at]*a + density[at+1]*lighting[at+1]*b + density[at+nx]*lighting[at+nx]*cc + density[at+nx+1]*lighting[at+nx+1]*d) / rho;
+        const opacity = 1 - Math.exp(-rho * .43), weight = transmittance * opacity;
+        brightness += weight * light; transmittance *= 1 - opacity;
+        if (transmittance < .005) break;
+      }
+      const opacity = 1 - transmittance; if (opacity < .004) continue;
+      const light = brightness / opacity, colors = [[242*light+9,244*light+10,248*light+12],
+        [30+light*108,40+light*117,54+light*124], [22+light*76,34+light*82,51+light*91]];
+      images.forEach((image,i) => {
+        image.data.data[pixel]=colors[i][0];image.data.data[pixel+1]=colors[i][1];image.data.data[pixel+2]=colors[i][2];image.data.data[pixel+3]=Math.round(opacity*255);
+      });
+    }
+    images.forEach(image => image.ctx.putImageData(image.data, 0, 0));
+    return { day: images[0].canvas, storm: images[1].canvas, night: images[2].canvas };
+  }
+  function moonTexture() {
+    const canvas = document.createElement('canvas'); canvas.width = canvas.height = 160;
+    const c = canvas.getContext('2d'), rand = rng(102), g = c.createRadialGradient(55, 42, 5, 82, 82, 76);
+    g.addColorStop(0, '#f0f1ec'); g.addColorStop(.55, '#becbd2'); g.addColorStop(1, '#727f91');
+    c.fillStyle = g; c.beginPath(); c.arc(80, 80, 74, 0, Math.PI * 2); c.fill();
+    c.globalCompositeOperation = 'source-atop';
+    for (let i = 0; i < 165; i++) {
+      const x = 12 + rand() * 135, y = 12 + rand() * 135, r = 1 + rand() ** 2 * 13;
+      const crater = c.createRadialGradient(x + r * .2, y + r * .25, 0, x, y, r);
+      crater.addColorStop(0, 'rgba(60,77,95,.21)'); crater.addColorStop(.72, 'rgba(71,87,105,.12)'); crater.addColorStop(1, 'rgba(246,248,235,.14)');
+      c.fillStyle = crater; c.fillRect(x - r, y - r, r * 2, r * 2);
+    }
+    const shade = c.createLinearGradient(90, 0, 158, 0); shade.addColorStop(0, 'rgba(9,19,36,0)'); shade.addColorStop(1, 'rgba(9,19,36,.82)');
+    c.fillStyle = shade; c.fillRect(0, 0, 160, 160); return canvas;
+  }
+  function sceneTextures() {
+    if (!weatherTextures) weatherTextures = { clouds: [cloudTexture(42), cloudTexture(97)], moon: moonTexture() };
+    return weatherTextures;
+  }
+
   class WeatherScene {
     constructor(canvas) {
-      this.canvas = canvas; this.ctx = canvas.getContext('2d'); this.width = 1; this.height = 1;
+      this.canvas = canvas; this.ctx = canvas.getContext('2d'); this.width = 1; this.height = 1; this.dpr = 1;
       this.current = null; this.transition = null; this.key = ''; this.active = false;
       this.enabled = true; this.reduced = false; this.lastFrame = 0; this.clock = 0; this.raf = 0;
-      this.clouds = [this.makeCloud(42), this.makeCloud(17), this.makeCloud(97)];
+      this.quality = 'balanced'; this.profile = WEATHER_QUALITY.balanced; this.duration = 4500;
+      this.textures = sceneTextures(); this.clouds = this.textures.clouds;
+      this.materials = this.clouds.map(() => {
+        const canvas = document.createElement('canvas'); canvas.width = 448; canvas.height = 256;
+        return { canvas, ctx: canvas.getContext('2d') };
+      });
+      this.materialKey = '';
+      this.wind = -.22; this.windTarget = -.22; this.measuredWind = false; this.nextStrike = Infinity; this.strike = null;
+      this.heatBuffer = document.createElement('canvas'); this.heatCtx = this.heatBuffer.getContext('2d');
       const rand = rng(28);
-      this.particles = Array.from({ length: 100 }, () => ({ x: rand(), y: rand(), z: .4 + rand() * .6, phase: rand() * 8 }));
+      this.particles = Array.from({ length: 200 }, () => ({ x: rand(), y: rand(), z: .1 + rand() * .9, phase: rand() * Math.PI * 2, weight: rand() }));
+      this.layers = Array.from({ length: 9 }, (_, i) => ({ x: -.36 + (i % 3) * .34, y: .05 + Math.floor(i / 3) * .15,
+        scale: .62 + (i % 3) * .09 + Math.floor(i / 3) * .08, depth: .23 + i * .085, seed: i % 2 }));
     }
-    makeCloud(seed) {
-      const canvas = document.createElement('canvas'); canvas.width = 800; canvas.height = 400;
-      const c = canvas.getContext('2d'); if (!c) return canvas;
-      const r = rng(seed);
-      // Several overlapping translucent puffs give the cloud a soft, textured edge.
-      for (let i = 0; i < 140; i++) {
-        const x = 100 + r() * 590, y = 150 + r() * 130 - Math.sin((x - 80) / 650 * Math.PI) * 85;
-        const radius = 25 + r() * 65;
-        const g = c.createRadialGradient(x - radius * .18, y - radius * .4, 0, x, y, radius);
-        g.addColorStop(0, 'rgba(230,240,250,.38)');
-        g.addColorStop(.48, 'rgba(166,187,209,.28)'); g.addColorStop(1, 'rgba(90,119,155,0)');
-        c.fillStyle = g; c.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-      }
-      const shade = c.createLinearGradient(0, 150, 0, 350);
-      shade.addColorStop(0, 'rgba(24,48,79,0)'); shade.addColorStop(1, 'rgba(14,37,63,.75)');
-      c.globalCompositeOperation = 'source-atop'; c.fillStyle = shade; c.fillRect(0, 0, 800, 400);
-      return canvas;
+    setOptions(quality, seconds) {
+      const next = WEATHER_QUALITY[quality] ? quality : 'balanced';
+      this.duration = clamp(Number(seconds) || 4.5, 2, 12) * 1000;
+      if (this.quality !== next) { this.quality = next; this.profile = WEATHER_QUALITY[next]; this.resize(this.width, this.height); }
+    }
+    setWind(value, unit, bearing) {
+      const n = number(value); this.measuredWind = n !== null;
+      let speed = n ?? 10;
+      if (unit === 'm/s') speed *= 3.6; else if (unit === 'mph') speed *= 1.609344; else if (['kn', 'kt', 'knots'].includes(unit)) speed *= 1.852;
+      const angle = number(bearing), direction = angle === null ? -.7 : -Math.sin(angle * Math.PI / 180);
+      this.windTarget = clamp(speed / 65, 0, 1.5) * direction;
     }
     target(condition, night, heat) {
-      let p = { sun: night ? 0 : 1, moon: night ? 1 : 0, cloud: 0, rain: 0, snow: 0, fog: 0, lightning: 0, wind: .15, heat: heat ? 1 : 0, hail: 0,
-        top: night ? [12, 22, 49] : [30, 83, 122], bottom: night ? [31, 54, 79] : [104, 146, 165] };
-      if (condition === 'partlycloudy') p.cloud = .6;
-      if (condition === 'cloudy') Object.assign(p, { cloud: 1, sun: 0, moon: .2, top: [38, 59, 80], bottom: [81, 111, 136] });
+      const p = { sun: night ? 0 : 1, moon: night ? 1 : 0, cloud: 0, shade: 0, rain: 0, snow: 0, fog: 0, lightning: 0,
+        wind: .15, heat: heat ? 1 : 0, hail: 0, night: night ? 1 : 0,
+        top: night ? [8, 18, 39] : [34, 107, 166], bottom: night ? [43, 64, 83] : [163, 198, 211] };
+      if (condition === 'partlycloudy') Object.assign(p, { cloud: .65, shade: .05 });
+      if (condition === 'cloudy') Object.assign(p, { cloud: 1, shade: .42, sun: 0, moon: 0, top: [62, 88, 111], bottom: [144, 164, 177] });
       if (['rainy', 'pouring', 'lightning', 'lightning-rainy', 'hail', 'exceptional'].includes(condition)) {
         const storm = ['pouring', 'lightning', 'lightning-rainy', 'exceptional'].includes(condition);
-        Object.assign(p, { cloud: 1, sun: 0, moon: 0, rain: condition === 'lightning' || condition === 'hail' ? 0 : storm ? 1 : .55,
+        Object.assign(p, { cloud: 1, shade: storm ? 1 : .72, sun: 0, moon: 0,
+          rain: condition === 'lightning' || condition === 'hail' ? 0 : storm ? 1 : .55,
           hail: condition === 'hail' ? 1 : 0, lightning: ['lightning', 'lightning-rainy', 'exceptional'].includes(condition) ? 1 : 0,
-          wind: storm ? .8 : .4, top: storm ? [14, 28, 47] : [28, 49, 73], bottom: [55, 81, 111] });
+          wind: storm ? .8 : .35, top: storm ? [15, 27, 44] : [49, 73, 96], bottom: storm ? [63, 85, 108] : [100, 129, 150] });
       }
-      if (['snowy', 'snowy-rainy'].includes(condition)) Object.assign(p, { cloud: .9, sun: 0, snow: 1, rain: condition === 'snowy-rainy' ? .35 : 0, top: [50, 78, 110], bottom: [133, 165, 180] });
-      if (condition === 'fog') Object.assign(p, { fog: 1, cloud: .4, sun: .1, top: [52, 77, 94], bottom: [112, 137, 144] });
-      if (['windy', 'windy-variant'].includes(condition)) Object.assign(p, { wind: 1, cloud: condition === 'windy-variant' ? .9 : .2 });
-      if (heat && !p.rain && !p.snow && !p.lightning && !p.hail) Object.assign(p, { top: [99, 55, 45], bottom: [185, 108, 66] });
+      if (['snowy', 'snowy-rainy'].includes(condition)) Object.assign(p, { cloud: .95, shade: .35, sun: 0, moon: 0, snow: 1,
+        rain: condition === 'snowy-rainy' ? .35 : 0, top: [58, 84, 111], bottom: [162, 188, 200] });
+      if (condition === 'fog') Object.assign(p, { fog: 1, cloud: .25, shade: .2, sun: .06, moon: 0, top: [99, 120, 133], bottom: [179, 193, 198] });
+      if (['windy', 'windy-variant'].includes(condition)) Object.assign(p, { wind: 1, cloud: condition === 'windy-variant' ? .85 : .38 });
+      if (heat && !p.rain && !p.snow && !p.lightning && !p.hail) Object.assign(p, { top: [66, 113, 151], bottom: [219, 171, 115] });
+      if (night && condition !== 'clear-night') {
+        p.top = p.top.map((v, i) => mix(v, [8, 18, 34][i], .7)); p.bottom = p.bottom.map((v, i) => mix(v, [37, 57, 78][i], .7));
+      }
       return p;
     }
     setWeather(condition, night, heat) {
       const key = `${condition}:${night}:${heat}`; if (key === this.key) return;
       const now = performance.now(); this.update(now); const to = this.target(condition, night, heat);
+      if (to.lightning && !this.current?.lightning) this.nextStrike = this.clock + this.duration / 1000 + .45;
+      if (!to.lightning) { this.strike = null; this.nextStrike = Infinity; }
       if (!this.current || this.reduced || !this.enabled) { this.current = to; this.transition = null; }
-      else this.transition = { from: structuredClone(this.current), to, start: now, duration: 3000 };
-      this.key = key; this.draw(now); this.schedule();
+      else this.transition = { from: structuredClone(this.current), to, start: now, duration: this.duration };
+      this.key = key; this.draw(); this.schedule();
     }
     update(now) {
       if (!this.transition) return;
-      const { from, to, start, duration } = this.transition, raw = clamp((now - start) / duration);
-      const out = {};
+      const { from, to, start, duration } = this.transition, raw = clamp((now - start) / duration), out = {};
       for (const key of Object.keys(to)) {
         let t = smooth(raw);
-        // Clouds arrive before new precipitation; precipitation stops before clouds leave.
         if (key === 'cloud') t = to.cloud > from.cloud ? smooth(raw / .7) : smooth((raw - .25) / .75);
-        if (['rain', 'snow', 'hail'].includes(key)) t = to[key] > from[key] ? smooth((raw - .4) / .6) : smooth(raw / .55);
+        if (['rain', 'snow', 'hail', 'lightning'].includes(key)) t = to[key] > from[key] ? smooth((raw - .4) / .6) : smooth(raw / .55);
         out[key] = Array.isArray(to[key]) ? to[key].map((v, i) => mix(from[key][i], v, t)) : mix(from[key], to[key], t);
       }
       this.current = out; if (raw === 1) this.transition = null;
     }
     resize(w, h) {
-      this.width = Math.max(1, w); this.height = Math.max(1, h); const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-      this.canvas.width = Math.round(w * dpr); this.canvas.height = Math.round(h * dpr);
-      this.ctx?.setTransform(dpr, 0, 0, dpr, 0, 0); this.draw(performance.now());
+      this.width = Math.max(1, w); this.height = Math.max(1, h); this.dpr = Math.min(window.devicePixelRatio || 1, this.profile.dpr);
+      this.canvas.width = Math.round(this.width * this.dpr); this.canvas.height = Math.round(this.height * this.dpr);
+      this.heatBuffer.width = this.canvas.width; this.heatBuffer.height = this.canvas.height;
+      this.ctx?.setTransform(this.dpr, 0, 0, this.dpr, 0, 0); this.draw();
     }
-    setActive(value) { this.active = value; if (value) this.schedule(); else this.stop(); }
+    setActive(value) { if (this.active === value) return; this.active = value; if (value) { this.lastFrame = 0; this.schedule(); } else this.stop(); }
     setMotion(enabled, reduced) {
+      if (this.enabled === enabled && this.reduced === reduced) return;
       this.enabled = enabled; this.reduced = reduced;
       if ((!enabled || reduced) && this.transition) { this.current = this.transition.to; this.transition = null; }
-      this.draw(performance.now()); if (enabled && !reduced) this.schedule(); else this.stop();
+      this.draw(); if (enabled && !reduced) this.schedule(); else this.stop();
     }
     schedule() { if (!this.raf && this.active && this.enabled && !this.reduced && this.ctx) this.raf = requestAnimationFrame(t => this.tick(t)); }
-    tick(t) { this.raf = 0; if (t - this.lastFrame >= 1000 / 30) { this.lastFrame = t; this.update(t); this.draw(t); } this.schedule(); }
-    stop() { cancelAnimationFrame(this.raf); this.raf = 0; }
-    draw(now) {
-      if (!this.ctx || !this.current) return;
-      const c = this.ctx, w = this.width, h = this.height, p = this.current;
-      const t = this.enabled && !this.reduced ? now / 1000 : 12;
-      c.clearRect(0, 0, w, h);
-      let g = c.createLinearGradient(0, 0, w * .4, h); g.addColorStop(0, rgb(p.top)); g.addColorStop(1, rgb(p.bottom));
+    tick(t) {
+      this.raf = 0;
+      if (!this.lastFrame || t - this.lastFrame >= 1000 / this.profile.fps - .5) {
+        const dt = this.lastFrame ? clamp((t - this.lastFrame) / 1000, 0, .12) : 0;
+        this.lastFrame = t; this.clock += dt; this.wind = mix(this.wind, this.windTarget, clamp(dt * 1.5));
+        this.update(t); this.draw();
+      }
+      this.schedule();
+    }
+    stop() { cancelAnimationFrame(this.raf); this.raf = 0; this.lastFrame = 0; }
+    drawSky(c, p, w, h, t) {
+      let g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, rgb(p.top)); g.addColorStop(.58, rgb(p.top.map((v, i) => mix(v, p.bottom[i], .58)))); g.addColorStop(1, rgb(p.bottom));
       c.fillStyle = g; c.fillRect(0, 0, w, h);
-      const cx = w * .265, cy = h * .40, radius = Math.min(w * .115, h * .19);
+      const cx = w * .245, cy = h * .335, r = Math.min(w * .046, h * .082);
       if (p.moon > .01) {
+        c.globalAlpha = p.moon * (1 - p.cloud * .8);
+        for (const star of this.particles.slice(0, 62)) {
+          c.fillStyle = `rgba(226,237,255,${.18 + star.z * .46 + Math.sin(t * .55 + star.phase) * .045})`;
+          c.beginPath(); c.arc(star.x * w, star.y * h * .76, .4 + star.z * .65, 0, Math.PI * 2); c.fill();
+        }
         c.globalAlpha = p.moon;
-        for (const star of this.particles.slice(0, 38)) { c.fillStyle = `rgba(225,237,255,${.45 + Math.sin(t * .7 + star.phase) * .2})`; c.beginPath(); c.arc(star.x * w * .7, star.y * h * .63, star.z * 1.4, 0, Math.PI * 2); c.fill(); }
-        g = c.createRadialGradient(cx, cy, radius * .4, cx, cy, radius * 2.7); g.addColorStop(0, 'rgba(192,218,255,.34)'); g.addColorStop(1, 'rgba(144,177,234,0)'); c.fillStyle = g; c.fillRect(0, 0, w, h);
-        c.fillStyle = '#dfeaff'; c.beginPath(); c.arc(cx, cy, radius * .75, 0, Math.PI * 2); c.fill();
-        c.globalAlpha = 1;
+        g = c.createRadialGradient(cx, cy, r * .5, cx, cy, r * 4.5); g.addColorStop(0, 'rgba(192,215,249,.23)'); g.addColorStop(1, 'rgba(164,194,240,0)');
+        c.fillStyle = g; c.fillRect(0, 0, w, h); c.drawImage(this.textures.moon, cx - r, cy - r, r * 2, r * 2); c.globalAlpha = 1;
       }
       if (p.sun > .01) {
         c.globalAlpha = p.sun;
-        g = c.createRadialGradient(cx, cy, radius * .5, cx, cy, radius * 3.1); g.addColorStop(0, 'rgba(255,218,130,.78)'); g.addColorStop(.4, 'rgba(252,194,99,.23)'); g.addColorStop(1, 'rgba(248,164,87,0)');
+        g = c.createRadialGradient(cx, cy, r * .35, cx, cy, r * 6.8); g.addColorStop(0, 'rgba(255,253,230,.85)'); g.addColorStop(.18, 'rgba(255,232,173,.37)'); g.addColorStop(.55, 'rgba(255,223,176,.10)'); g.addColorStop(1, 'rgba(255,228,196,0)');
         c.fillStyle = g; c.fillRect(0, 0, w, h);
-        g = c.createRadialGradient(cx - radius * .3, cy - radius * .4, 0, cx, cy, radius); g.addColorStop(0, '#fffbd0'); g.addColorStop(.7, '#ffe798'); g.addColorStop(1, '#fac864');
-        c.fillStyle = g; c.beginPath(); c.arc(cx, cy, radius, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
+        g = c.createRadialGradient(cx, cy, r * .1, cx, cy, r); g.addColorStop(0, '#fffff5'); g.addColorStop(.74, '#fff9df'); g.addColorStop(1, 'rgba(255,241,211,0)');
+        c.fillStyle = g; c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill();
+        c.globalAlpha = p.sun * .09; c.drawImage(this.clouds[0].day, -w * .22 + Math.sin(t * .012) * 12, h * .015, w * 1.14, h * .14); c.globalAlpha = 1;
       }
-      if (p.heat > .01) {
-        c.globalAlpha = p.heat * .2; c.strokeStyle = '#ffb978'; c.lineWidth = 18;
-        for (let i = 0; i < 5; i++) { c.beginPath(); for (let y = 0; y < h; y += 9) { const x = w * (.06 + i * .105) + Math.sin(y / 40 + t * 1.6 + i) * 8; y ? c.lineTo(x, y) : c.moveTo(x, y); } c.stroke(); }
-        c.globalAlpha = 1;
+      g = c.createLinearGradient(0, h * .45, 0, h); g.addColorStop(0, 'rgba(204,219,229,0)'); g.addColorStop(1, `rgba(191,211,225,${.11 * (1 - p.night)})`);
+      c.fillStyle = g; c.fillRect(0, 0, w, h);
+    }
+    drawClouds(c, p, w, h, t) {
+      if (p.cloud < .005) return;
+      const shade = clamp(p.shade), night = p.night * (1 - shade), enter = -(1 - p.cloud) * w * .94;
+      const materialKey = `${shade.toFixed(2)}:${night.toFixed(2)}`;
+      if (this.materialKey !== materialKey) {
+        this.materials.forEach((material, i) => {
+          const mc = material.ctx, texture = this.clouds[i];
+          mc.clearRect(0, 0, 448, 256); mc.globalCompositeOperation = 'lighter';
+          mc.globalAlpha = (1 - shade) * (1 - night); mc.drawImage(texture.day, 0, 0);
+          mc.globalAlpha = shade; mc.drawImage(texture.storm, 0, 0);
+          mc.globalAlpha = (1 - shade) * night; mc.drawImage(texture.night, 0, 0); mc.globalAlpha = 1;
+        });
+        this.materialKey = materialKey;
       }
-      if (p.cloud > .01) {
-        const entry = (1 - p.cloud) * -w * .35;
-        for (let i = 0; i < 4; i++) {
-          c.globalAlpha = clamp(p.cloud * (i === 0 ? .6 : .94)); const cw = w * (.58 + (i % 2) * .12), ch = cw * .5;
-          const x = entry + w * (-.16 + i * .13) + Math.sin(t * (.06 + p.wind * .07) + i * 2) * 16;
-          const y = h * (.16 + (i % 2) * .18) - (i === 0 ? h * .06 : 0);
-          c.drawImage(this.clouds[i % 3], x, y, cw, ch);
-        }
-        c.globalAlpha = 1;
+      for (let i = 0; i < this.profile.clouds; i++) {
+        const layer = this.layers[i], texture = this.materials[layer.seed].canvas, cw = w * layer.scale, ch = cw * 256 / 448;
+        const loop = w * 1.85 + cw, direction = this.measuredWind ? Math.sign(this.wind) || 1 : 1;
+        const velocity = (4 + p.wind * 27 + Math.abs(this.wind) * 14) * layer.depth * direction;
+        const x = wrap(layer.x * w + cw + t * velocity, loop) - cw + enter;
+        const y = h * layer.y + Math.sin(t * .018 + i) * 2;
+        const opacity = clamp(p.cloud * (i < 3 ? .76 : .97));
+        c.globalAlpha = opacity; c.drawImage(texture, x, y, cw, ch);
       }
-      const precipitation = p.rain + p.snow + p.hail;
-      if (precipitation > .01) {
-        c.save(); c.beginPath(); c.rect(0, h * .3, w * .62, h * .7); c.clip();
-        for (const a of this.particles) {
-          const xx = ((a.x + t * .04 * p.wind) % 1) * w * .64;
-          if (p.rain > .01 && a.z <= .5 + p.rain * .5) {
-            const y = ((a.y + t * (.7 + a.z * .65)) % 1) * h;
-            c.strokeStyle = `rgba(189,225,251,${p.rain * (.3 + a.z * .35)})`; c.lineWidth = a.z * 1.15;
-            c.beginPath(); c.moveTo(xx, y); c.lineTo(xx - 4 - p.wind * 9, y + 11 + a.z * 13); c.stroke();
+      c.globalAlpha = 1;
+    }
+    drawPrecipitation(c, p, w, h, t) {
+      if (p.rain + p.snow + p.hail < .005) return;
+      const wind = this.measuredWind ? this.wind : -p.wind * .7;
+      c.save();
+      // The complete sky receives precipitation. The foreground scrim keeps
+      // temperatures readable; rain is not abruptly clipped beside the text.
+      for (let i = 0; i < this.profile.particles; i++) {
+        const a = this.particles[i], depth = a.z * a.z;
+        if (p.rain > .005) {
+          const visible = clamp(p.rain * 1.75 - a.weight * .75), speed = 130 + depth * 530, length = 7 + depth * 32;
+          const y = wrap(a.y * (h + length) + t * speed, h + length) - length;
+          const vx = wind * (85 + depth * 140), x = wrap(a.x * (w + 70) + t * vx, w + 70) - 35;
+          c.strokeStyle = `rgba(215,237,251,${visible * (.08 + depth * .32)})`; c.lineWidth = .45 + depth * 1.25;
+          c.beginPath(); c.moveTo(x, y); c.lineTo(x + vx / speed * length, y + length); c.stroke();
+          if (depth > .45) {
+            const impact = wrap(a.y + t * (.55 + depth), 1);
+            if (impact > .83) {
+              const progress = (impact - .83) / .17, sx = a.x * w, sy = h * (.94 + a.weight * .05);
+              c.strokeStyle = `rgba(213,234,249,${visible * (1 - progress) * .21})`; c.lineWidth = .7;
+              c.beginPath(); c.ellipse(sx, sy, 2 + progress * 8, .6 + progress * 1.3, 0, 0, Math.PI * 2); c.stroke();
+            }
           }
-          if (p.snow > .01 || p.hail > .01) {
-            const y = ((a.y + t * (p.hail ? .65 : .09) * a.z) % 1) * h;
-            c.fillStyle = `rgba(235,248,255,${Math.max(p.snow, p.hail) * .8})`;
-            c.beginPath(); c.arc(xx + Math.sin(t + a.phase) * (p.hail ? 2 : 15), y, p.hail ? a.z * 2.3 : 1 + a.z * 2.4, 0, Math.PI * 2); c.fill();
-          }
         }
-        c.restore();
-      }
-      if (p.fog > .01) {
-        for (let i = 0; i < 4; i++) {
-          const y = h * (.55 + i * .09), x = Math.sin(t * .13 + i) * w * .07;
-          g = c.createRadialGradient(w * .25 + x, y, 0, w * .25 + x, y, w * .48); g.addColorStop(0, `rgba(215,232,239,${p.fog * .18})`); g.addColorStop(1, 'rgba(215,232,239,0)');
-          c.fillStyle = g; c.fillRect(0, y - h * .18, w, h * .3);
+        if (p.snow > .005) {
+          const x = wrap(a.x * (w + 40) + Math.sin(t * (.4 + depth) + a.phase) * (6 + depth * 15) + t * wind * 35, w + 40) - 20;
+          const y = wrap(a.y * (h + 16) + t * (11 + depth * 53), h + 16) - 8;
+          c.fillStyle = `rgba(240,248,252,${p.snow * (.23 + depth * .58)})`;
+          c.beginPath(); c.ellipse(x, y, .7 + depth * 2.4, .7 + depth * 1.8, a.phase + t * .24, 0, Math.PI * 2); c.fill();
+        }
+        if (p.hail > .005) {
+          const phase = wrap(a.y + t * (.65 + depth * .4), 1), x = wrap(a.x * w + t * wind * 72, w);
+          const y = phase < .87 ? (phase / .87) ** 1.6 * h * .95 : h * .95 - Math.sin((phase - .87) / .13 * Math.PI) * (4 + depth * 15);
+          c.fillStyle = `rgba(223,237,246,${p.hail * (.35 + depth * .4)})`; c.beginPath(); c.arc(x, y, 1 + depth * 2.1, 0, Math.PI * 2); c.fill();
         }
       }
-      if (p.wind > .8) {
-        c.strokeStyle = 'rgba(226,240,246,.26)'; c.lineWidth = 1;
-        for (let i = 0; i < 5; i++) { const x = ((t * .23 + i * .19) % 1) * w * .6; c.beginPath(); c.moveTo(x, h * (.43 + i * .07)); c.quadraticCurveTo(x + 35, h * (.4 + i * .07), x + 85, h * (.42 + i * .07)); c.stroke(); }
+      c.restore();
+    }
+    drawFog(c, p, w, h, t) {
+      if (p.fog < .005) return;
+      for (let i = 0; i < 4; i++) {
+        const x = Math.sin(t * (.025 + i * .009) + i * 2) * w * .12;
+        c.globalAlpha = p.fog * (.13 + i * .023);
+        c.drawImage(this.clouds[i % 2].day, -w * .55 + x, h * (.29 + i * .12), w * 2.1, h * .42);
       }
-      if (p.lightning > .01 && this.enabled && !this.reduced) {
-        const phase = t % 8.5;
-        if (phase > 7.7 && phase < 7.92) {
-          c.globalAlpha = p.lightning * Math.sin((phase - 7.7) / .22 * Math.PI); c.strokeStyle = '#eff6ff'; c.lineWidth = 3;
-          c.beginPath(); c.moveTo(w * .28, h * .38); c.lineTo(w * .23, h * .59); c.lineTo(w * .29, h * .58); c.lineTo(w * .20, h * .83); c.stroke(); c.globalAlpha = 1;
+      c.globalAlpha = 1;
+      const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, `rgba(194,210,219,${p.fog * .14})`); g.addColorStop(1, `rgba(206,221,226,${p.fog * .43})`);
+      c.fillStyle = g; c.fillRect(0, 0, w, h);
+    }
+    drawHeat(c, p, w, h, t) {
+      if (p.heat < .005 || this.quality === 'low' || !this.enabled || this.reduced) return;
+      this.heatCtx.clearRect(0, 0, this.canvas.width, this.canvas.height); this.heatCtx.drawImage(this.canvas, 0, 0);
+      const band = this.quality === 'high' ? 4 : 7, leftWidth = w * .65;
+      for (let y = h * .18; y < h; y += band) {
+        const amount = (.45 + smooth((y / h - .18) / .82) * .55) * p.heat;
+        const dx = Math.sin(y * .18 + t * 2.3) * amount * 1.8 + Math.sin(y * .071 - t * 1.7) * amount;
+        const height = Math.min(band + 1, h - y);
+        c.drawImage(this.heatBuffer, 0, y * this.dpr, leftWidth * this.dpr, height * this.dpr, dx, y, leftWidth, height);
+      }
+    }
+    makeBolt(seed) {
+      const rand = rng(seed), points = [[.15 + rand() * .2, .23]], branches = [];
+      for (let i = 1; i <= 16; i++) {
+        const previous = points[i - 1], point = [clamp(previous[0] + (rand() - .52) * .055, .08, .48), .23 + i * .038]; points.push(point);
+        if (i > 2 && i < 12 && rand() > .66) {
+          const branch = [point], direction = rand() > .5 ? 1 : -1;
+          for (let j = 1; j < 5; j++) branch.push([point[0] + direction * j * (.012 + rand() * .006), point[1] + j * (.02 + rand() * .013)]);
+          branches.push(branch);
         }
       }
-      g = c.createLinearGradient(0, 0, w, 0); g.addColorStop(0, 'rgba(10,27,48,.03)'); g.addColorStop(.45, 'rgba(10,27,48,.1)'); g.addColorStop(.64, 'rgba(10,27,48,.75)'); g.addColorStop(1, 'rgba(10,27,48,.96)');
+      return { points, branches };
+    }
+    drawLightning(c, p, w, h, t) {
+      if (p.lightning < .01 || !this.enabled || this.reduced) return;
+      if (!this.strike && t >= this.nextStrike) { this.strike = { start: t, bolt: this.makeBolt(Math.floor(t * 913) + 83) }; }
+      if (!this.strike) return;
+      const age = t - this.strike.start;
+      if (age > .64) { this.strike = null; this.nextStrike = t + 8.5 + noise2(t, 3, 41) * 4; return; }
+      const pulse = age < .12 ? Math.sin(age / .12 * Math.PI) : age > .30 && age < .40 ? Math.sin((age - .30) / .10 * Math.PI) * .66 : 0;
+      if (pulse <= 0) return;
+      c.fillStyle = `rgba(190,212,255,${p.lightning * pulse * .17})`; c.fillRect(0, 0, w, h);
+      const line = points => { c.beginPath(); points.forEach(([x, y], i) => i ? c.lineTo(x * w, y * h) : c.moveTo(x * w, y * h)); c.stroke(); };
+      c.save(); c.lineJoin = 'round'; c.lineCap = 'round'; c.globalAlpha = pulse * p.lightning;
+      c.shadowColor = '#b0cfff'; c.shadowBlur = 12; c.strokeStyle = '#b4cbff'; c.lineWidth = 4; line(this.strike.bolt.points);
+      c.shadowBlur = 0; c.strokeStyle = '#f1f6ff'; c.lineWidth = 1.25; line(this.strike.bolt.points);
+      c.lineWidth = .6; c.globalAlpha *= .66; this.strike.bolt.branches.forEach(line); c.restore();
+    }
+    draw() {
+      if (!this.ctx || !this.current) return;
+      const c = this.ctx, w = this.width, h = this.height, p = this.current, t = this.clock;
+      c.globalAlpha = 1; c.clearRect(0, 0, w, h);
+      this.drawSky(c, p, w, h, t); this.drawClouds(c, p, w, h, t); this.drawHeat(c, p, w, h, t);
+      this.drawPrecipitation(c, p, w, h, t); this.drawFog(c, p, w, h, t); this.drawLightning(c, p, w, h, t);
+      let g = c.createLinearGradient(0, 0, w, 0); g.addColorStop(0, 'rgba(9,24,40,.02)'); g.addColorStop(.39, 'rgba(9,24,40,.10)'); g.addColorStop(.62, 'rgba(9,24,40,.76)'); g.addColorStop(1, 'rgba(9,24,40,.97)');
+      c.fillStyle = g; c.fillRect(0, 0, w, h);
+      g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, 'rgba(5,19,34,.24)'); g.addColorStop(.24, 'rgba(5,19,34,0)'); g.addColorStop(.68, 'rgba(5,19,34,0)'); g.addColorStop(1, 'rgba(5,19,34,.20)');
       c.fillStyle = g; c.fillRect(0, 0, w, h);
     }
   }
@@ -240,7 +432,9 @@ ha-card[data-theme=light] .home{background:#ecf3f9;color:#223b54}ha-card[data-th
       if (config.rooms && (!Array.isArray(config.rooms) || config.rooms.some(r => !r.entity))) throw new Error('Cada cômodo precisa de uma entidade de temperatura.');
       const duration = number(config.heat_threshold);
       if (config.heat_threshold !== undefined && config.heat_threshold !== false && duration === null) throw new Error('O limite de calor deve ser um número em °C ou false.');
-      this._config = { title: 'Tempo agora', animation: true, theme: 'auto', heat_threshold: 35, sun_entity: 'sun.sun', ...config };
+      if (config.animation_quality !== undefined && !WEATHER_QUALITY[config.animation_quality]) throw new Error('Qualidade da animação: use low, balanced ou high.');
+      if (config.transition_duration !== undefined && (number(config.transition_duration) === null || Number(config.transition_duration) < 2 || Number(config.transition_duration) > 12)) throw new Error('A duração da transição deve ficar entre 2 e 12 segundos.');
+      this._config = { title: 'Tempo agora', animation: true, animation_quality: 'balanced', transition_duration: 4.5, theme: 'auto', heat_threshold: 35, sun_entity: 'sun.sun', ...config };
       this._build(); this._render();
     }
     set hass(hass) { this._hass = hass; this._render(); }
@@ -341,6 +535,8 @@ ha-card[data-theme=light] .home{background:#ecf3f9;color:#223b54}ha-card[data-th
       notice.hidden = !messages.length; notice.textContent = messages.join(' ');
       this._root.dataset.theme = cfg.theme === 'auto' ? (hass.themes?.darkMode === false ? 'light' : 'dark') : cfg.theme;
       const sceneHeat = Boolean(hot && !['rainy','pouring','lightning','lightning-rainy','snowy','snowy-rainy','hail'].includes(condition));
+      this._scene.setOptions(cfg.animation_quality, cfg.transition_duration);
+      this._scene.setWind(wind?.value, wind?.unit, weatherAttrs.wind_bearing);
       this._scene.setWeather(sourceAvailable ? condition : 'cloudy', night, sceneHeat); this._syncMotion();
       this._renderRooms(sensor, temperature, formatter, unit);
     }
@@ -399,6 +595,10 @@ ha-card[data-theme=light] .home{background:#ecf3f9;color:#223b54}ha-card[data-th
       const theme=document.createElement('select');for(const [v,label] of [['auto','Tema do Home Assistant'],['dark','Escuro'],['light','Claro']]){const o=document.createElement('option');o.value=v;o.textContent=label;theme.append(o);}theme.value=this._config.theme||'auto';theme.dataset.key='theme';theme.addEventListener('change',()=>this.change('theme',theme.value));grid.append(this.wrap('Aparência',theme));
       const heat=document.createElement('input');heat.type='number';heat.min='20';heat.max='60';heat.step='1';heat.value=this._config.heat_threshold===false?'':this._config.heat_threshold??35;heat.placeholder='Vazio desativa';heat.dataset.key='heat_threshold';heat.addEventListener('change',()=>this.change('heat_threshold',heat.value===''?false:Number(heat.value)));grid.append(this.wrap('Calor intenso a partir de (°C)',heat));
       const motion=document.createElement('input');motion.type='checkbox';motion.checked=this._config.animation!==false;motion.dataset.key='animation';motion.addEventListener('change',()=>this.change('animation',motion.checked));const motionLabel=this.wrap('Ativar animações',motion);motionLabel.className='row';grid.append(motionLabel);
+      const quality=document.createElement('select');quality.dataset.key='animation_quality';
+      for(const [value,label] of [['low','Leve · tablets'],['balanced','Equilibrada'],['high','Detalhada · até 60 fps']]){const option=document.createElement('option');option.value=value;option.textContent=label;quality.append(option);}
+      quality.value=this._config.animation_quality||'balanced';quality.addEventListener('change',()=>this.change('animation_quality',quality.value));grid.append(this.wrap('Qualidade da animação',quality));
+      const transition=document.createElement('input');transition.type='number';transition.min='2';transition.max='12';transition.step='.5';transition.dataset.key='transition_duration';transition.value=this._config.transition_duration??4.5;transition.addEventListener('change',()=>{const value=Number(transition.value);if(Number.isFinite(value)&&value>=2&&value<=12)this.change('transition_duration',value);});grid.append(this.wrap('Transição entre climas (segundos)',transition));
       const extra=this.shadowRoot.querySelector('.extra');for(const key of [...sensorFields.filter(k=>!['indoor_temperature','indoor_humidity'].includes(k)),'sun_entity'])extra.append(this.wrap(FIELD_LABELS[key],this.select(key)));
       this.shadowRoot.querySelector('.add-room').addEventListener('click',()=>{const first=Object.keys(this._hass?.states||{}).find(id=>this._hass.states[id].attributes?.device_class==='temperature');if(first){this.change('rooms',[...(this._config.rooms||[]),{entity:first,name:'Cômodo'}]);this.render();}});
       (this._config.rooms||[]).forEach((room,index)=>{
@@ -440,6 +640,7 @@ function setWeather(key){sample.states['weather.casa'].state=key==='heat'?'sunny
 climates.forEach(([label,key])=>{const button=document.createElement('button');button.textContent=label;button.dataset.condition=key;button.setAttribute('aria-pressed',String(key==='sunny'));button.addEventListener('click',()=>setWeather(key));document.getElementById('weather-buttons').append(button);});
 document.getElementById('width').addEventListener('change',e=>document.querySelector('.card-wrap').style.width=e.target.value+'px');
 document.getElementById('theme').addEventListener('change',e=>{config.theme=e.target.value;card.setConfig(config)});
+document.getElementById('quality').addEventListener('change',e=>{config.animation_quality=e.target.value;card.setConfig(config)});
 document.getElementById('rooms').addEventListener('click',()=>{if(config.rooms)delete config.rooms;else config.rooms=[{name:'Sala',entity:'sensor.sala'},{name:'Quarto',entity:'sensor.quarto'},{name:'Cozinha',entity:'sensor.cozinha'}];card.setConfig(config)});
 document.getElementById('update-temp').addEventListener('click',()=>{sample.states['sensor.temperatura_casa'].state=String(Number(sample.states['sensor.temperatura_casa'].state)+.1);card.hass=structuredClone(sample)});
 document.getElementById('edit').addEventListener('click',()=>{const panel=document.getElementById('editor');panel.hidden=!panel.hidden;if(!panel.children.length){const editor=document.createElement('tempo-vivo-card-editor');panel.append(editor);editor.setConfig(config);editor.hass=sample;editor.addEventListener('config-changed',e=>{config=e.detail.config;card.setConfig(config)})}});
@@ -465,8 +666,14 @@ document.getElementById('run-tests').addEventListener('click',async()=>{
  const stub=customElements.get('tempo-vivo-card').getStubConfig(h);check('Configuração inicial encontra entidade weather',stub.entity==='weather.casa');
  test.setConfig({...tc,rooms:[{name:'Quarto',entity:'sensor.quarto'}]});check('Temperatura de cômodo funciona',q('.room-name').textContent==='Quarto'&&q('.room-value').textContent.includes('23,2'));
  let more=null;test.addEventListener('hass-more-info',e=>more=e.detail.entityId);q('.home-temp').click();check('Clique abre a entidade correta',more==='sensor.temperatura_casa');
- const editor=document.createElement('tempo-vivo-card-editor');document.body.append(editor);editor.hass=h;editor.setConfig(tc);let changed=null;editor.addEventListener('config-changed',e=>changed=e.detail.config);const title=editor.shadowRoot.querySelector('[data-key=title]');title.value='Minha sala';title.dispatchEvent(new Event('change'));check('Editor emite configuração para Home Assistant',changed?.title==='Minha sala');editor.remove();
- const scene=test._scene;scene.setMotion(true,false);scene.setActive(false);scene.setWeather('sunny',false,false);scene.current=scene.target('sunny',false,false);scene.transition=null;scene.setWeather('rainy',false,false);const start=scene.transition.start;scene.update(start+900);check('Nuvens chegam antes da chuva',scene.current.cloud>0&&scene.current.rain===0);scene.update(start+3050);check('Transição termina no clima solicitado',scene.current.cloud===1&&scene.current.rain>.5&&scene.transition===null);
+ const editor=document.createElement('tempo-vivo-card-editor');document.body.append(editor);editor.hass=h;editor.setConfig(tc);let changed=null;editor.addEventListener('config-changed',e=>changed=e.detail.config);const title=editor.shadowRoot.querySelector('[data-key=title]');title.value='Minha sala';title.dispatchEvent(new Event('change'));check('Editor emite configuração para Home Assistant',changed?.title==='Minha sala');const quality=editor.shadowRoot.querySelector('[data-key=animation_quality]');quality.value='high';quality.dispatchEvent(new Event('change'));check('Editor salva a qualidade escolhida',changed?.animation_quality==='high');const timing=editor.shadowRoot.querySelector('[data-key=transition_duration]');timing.value='6';timing.dispatchEvent(new Event('change'));check('Editor salva a duração escolhida',changed?.transition_duration===6);editor.remove();
+ const scene=test._scene;scene.setMotion(true,false);scene.setActive(false);scene.setWeather('sunny',false,false);scene.current=scene.target('sunny',false,false);scene.transition=null;scene.setWeather('rainy',false,false);const start=scene.transition.start,duration=scene.transition.duration;scene.update(start+duration*.3);check('Nuvens chegam antes da chuva',scene.current.cloud>0&&scene.current.rain===0);scene.update(start+duration+50);check('Transição termina no clima solicitado',scene.current.cloud===1&&scene.current.rain>.5&&scene.transition===null);
+ scene.setWeather('sunny',false,false);const returning=scene.transition.start;scene.update(returning+scene.transition.duration*.2);check('Chuva começa a parar antes de as nuvens saírem',scene.current.cloud===1&&scene.current.rain<.55);scene.update(returning+scene.transition.duration*.6);check('Chuva termina durante a abertura do céu',scene.current.rain===0&&scene.current.cloud>0);scene.update(returning+scene.transition.duration+10);
+ check('Texturas de céu são compartilhadas entre cards',scene.textures===card._scene.textures);
+ const pixels=scene.clouds[0].day.getContext('2d').getImageData(0,0,448,256).data;let light=255,dark=0,opaque=0,transparent=0;for(let i=0;i<pixels.length;i+=4){if(pixels[i+3]>245){opaque++;light=Math.min(light,pixels[i]);dark=Math.max(dark,pixels[i])}if(pixels[i+3]===0)transparent++}check('Nuvens têm sombra, luz e contorno transparente',opaque>1000&&transparent>1000&&dark-light>45);
+ scene.setWind(10,'m/s',90);const converted=scene.windTarget;scene.setWind(36,'km/h',90);check('Velocidade do vento aceita m/s e km/h',Math.abs(converted-scene.windTarget)<.00001&&converted<0);scene.setWind(36,'km/h',270);check('Direção do vento muda a inclinação da chuva',scene.windTarget>0);
+ scene.setOptions('low',6);check('Modo leve reduz partículas e resolução',scene.profile.particles<130&&scene.profile.dpr===1);scene.setOptions('high',6);check('Modo detalhado permite até 60 fps',scene.profile.fps===60);scene.setWeather('rainy',false,false);check('Duração configurada é aplicada à transição',scene.transition.duration===6000);
+ const differentFrames=condition=>{scene.current=scene.target(condition,false,condition==='sunny');scene.setOptions('balanced',4.5);scene.clock=3;scene.draw();const first=scene.ctx.getImageData(0,0,scene.canvas.width,scene.canvas.height).data;scene.clock+=.25;scene.draw();const second=scene.ctx.getImageData(0,0,scene.canvas.width,scene.canvas.height).data;let difference=0;for(let i=0;i<first.length;i+=16)if(first[i]!==second[i])difference++;return difference};check('Chuva muda de posição entre quadros',differentFrames('rainy')>50);check('Calor distorce a luz entre quadros',differentFrames('sunny')>50);scene.setMotion(true,true);check('Movimento reduzido finaliza a transição e pausa a cena',scene.transition===null&&scene.raf===0&&scene.reduced);scene.setMotion(true,false);scene.setActive(false);const clock=scene.clock;await new Promise(resolve=>setTimeout(resolve,80));check('Cena pausada mantém a posição das partículas',scene.clock===clock);
  test.remove();check('Remover o card interrompe a animação',scene.raf===0);
  const summary=document.createElement('strong');summary.textContent=`${cases.filter(x=>x.ok).length}/${cases.length} verificações passaram`;report.prepend(summary);window.tvTestResult={cases,passed:cases.every(x=>x.ok)};
  }catch(error){check('Sem erro de execução',false);report.append(document.createTextNode(String(error)));window.tvTestResult={cases,passed:false,error:String(error)}}finally{test.remove()}

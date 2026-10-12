@@ -1,6 +1,6 @@
 """Shared configuration keys."""
 DOMAIN = "tempo_vivo"
-VERSION = "2.0.1"
+VERSION = "2.1.0"
 CARD_URL = "/tempo_vivo/tempo-vivo-card.js"
 CARD_RESOURCE_URL = f"{CARD_URL}?v={VERSION}"
 FIELDS = (

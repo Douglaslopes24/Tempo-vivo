@@ -59,7 +59,7 @@ jobs:
               await github.rest.repos.createRelease({
                 ...context.repo, tag_name: tag, target_commitish: context.sha,
                 name: `Tempo Vivo ${version}`,
-                body: 'Corrige o erro Custom element doesn’t exist: tempo-vivo-card. A integração registra o módulo nos recursos Lovelace, atualiza sua URL e preserva recursos de outros cards. Atualize no HACS, reinicie o Home Assistant e recarregue o painel. Consulte o README para o recurso manual e para painéis YAML. Verificado com testes de instalação e de navegador e Hassfest.',
+                body: 'Animações de clima refeitas: nuvens com volume, textura e sombras, chuva com profundidade e inclinação pelo vento, lua texturizada, raios ramificados e distorção de calor. Qualidade Leve, Equilibrada ou Detalhada e duração da transição no editor. Atualize no HACS, reinicie o Home Assistant e recarregue o painel. Carregamento por recurso Lovelace preservado. Consulte o README e demo.html.',
                 draft: false, prerelease: false
               });
             }
