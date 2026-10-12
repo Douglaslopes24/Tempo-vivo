@@ -12,7 +12,8 @@ from unittest.mock import patch
 
 COMPONENT = Path(__file__).parents[1] / "custom_components/tempo_vivo"
 VERSION = json.loads((COMPONENT / "manifest.json").read_text())["version"]
-URL = f"/tempo_vivo/tempo-vivo-card.js?v={VERSION}"
+URL = f"/ceuvia/ceuvia-weather-card.js?v={VERSION}"
+LEGACY = "/tempo_vivo/tempo-vivo-card.js"
 OTHER = {"id": "other", "url": "/hacsfiles/bubble-card/bubble-card.js", "type": "module"}
 
 spec = importlib.util.spec_from_file_location("tv_resources", COMPONENT / "resources.py")
@@ -78,13 +79,13 @@ class ResourceRegistrationTest(unittest.IsolatedAsyncioTestCase):
 
     async def test_legacy_home_assistant_dictionary_is_supported(self):
         collection = StoredResources([OTHER])
-        await resources_module.async_register_resource({"resources": collection}, URL)
+        await resources_module.async_register_resource({"resources": collection}, URL, aliases=(LEGACY,))
         self.assertEqual(len(collection.stored), 2)
 
     async def test_upgrade_updates_existing_id_instead_of_creating_duplicate(self):
         previous = {"id": "tv", "url": "/tempo_vivo/tempo-vivo-card.js?v=1.0.1", "type": "module"}
         collection = StoredResources([OTHER, previous])
-        await resources_module.async_register_resource({"resources": collection}, URL)
+        await resources_module.async_register_resource({"resources": collection}, URL, aliases=(LEGACY,))
         self.assertEqual(collection.stored, [OTHER, {"id": "tv", "url": URL, "type": "module"}])
         self.assertEqual(collection.loads, 1)
 
@@ -105,7 +106,7 @@ class ResourceRegistrationTest(unittest.IsolatedAsyncioTestCase):
         duplicate = {"id": "duplicate", "url": "/tempo_vivo/tempo-vivo-card.js", "type": "module"}
         external = {"id": "external", "url": "https://example.test/tempo_vivo/tempo-vivo-card.js", "type": "module"}
         collection = StoredResources([OTHER, {"id": "tv", "url": URL, "type": "module"}, duplicate, external])
-        await resources_module.async_register_resource({"resources": collection}, URL)
+        await resources_module.async_register_resource({"resources": collection}, URL, aliases=(LEGACY,))
         self.assertEqual([item["id"] for item in collection.stored], ["other", "tv", "external"])
 
     async def test_resource_deleted_by_user_is_recreated_on_reload(self):
@@ -164,10 +165,12 @@ class FrontendSetupTest(unittest.IsolatedAsyncioTestCase):
         hass = SimpleNamespace(data={"lovelace": SimpleNamespace(resources=collection)},
                                http=SimpleNamespace(async_register_static_paths=register_static))
         await asyncio.gather(*(frontend.async_setup_frontend(hass) for _ in range(3)))
-        self.assertEqual(len(paths), 1)
+        self.assertEqual(len(paths), 2)
         self.assertEqual(paths[0].url_path, URL.split("?")[0])
         self.assertFalse(paths[0].cache_headers)
-        self.assertIn("customElements.define('tempo-vivo-card'", Path(paths[0].path).read_text())
+        self.assertEqual(paths[1].url_path, LEGACY)
+        self.assertEqual(paths[1].path, paths[0].path)
+        self.assertIn("customElements.define('ceuvia-weather-card'", Path(paths[0].path).read_text())
         self.assertEqual(collection.loads, 1)
         self.assertEqual(collection.writes, 1)
         self.assertEqual(collection.stored[0], OTHER)
@@ -190,7 +193,7 @@ class FrontendSetupTest(unittest.IsolatedAsyncioTestCase):
         collection = StoredResources([OTHER])
         hass.data["lovelace"]["resources"] = collection
         await frontend.async_setup_frontend(hass)
-        self.assertEqual(len(paths), 1)
+        self.assertEqual(len(paths), 2)
         self.assertEqual(len(collection.stored), 2)
 
     async def test_yaml_mode_logs_actionable_resource_instruction(self):

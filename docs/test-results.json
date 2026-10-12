@@ -1,8 +1,8 @@
 {
-  "version": "2.1.0",
+  "version": "3.0.0",
   "moduleChecks": [
     {
-      "name": "Módulo externo registra tempo-vivo-card",
+      "name": "Módulo externo registra Ceuvia Weather Card",
       "ok": true
     },
     {
@@ -18,7 +18,19 @@
       "ok": true
     },
     {
+      "name": "Tipo antigo continua disponível",
+      "ok": true
+    },
+    {
+      "name": "Seletor mostra o nome final sem duplicar o cartão",
+      "ok": true
+    },
+    {
       "name": "Carregamento duplicado não quebra o registro",
+      "ok": true
+    },
+    {
+      "name": "YAML antigo renderiza após a atualização",
       "ok": true
     }
   ],
@@ -90,6 +102,26 @@
       },
       {
         "name": "Editor salva a duração escolhida",
+        "ok": true
+      },
+      {
+        "name": "Idioma inglês traduz o clima e a casa",
+        "ok": true
+      },
+      {
+        "name": "Editor inglês traduz os controles",
+        "ok": true
+      },
+      {
+        "name": "Cômodos aceitam a temperatura de uma entidade climate",
+        "ok": true
+      },
+      {
+        "name": "Idioma automático acompanha o Home Assistant",
+        "ok": true
+      },
+      {
+        "name": "Agregado indisponível preserva a temperatura da casa",
         "ok": true
       },
       {
@@ -168,7 +200,7 @@
     "scene": "temporal",
     "quality": "high",
     "frames": 90,
-    "medianMs": 0.3,
-    "p95Ms": 0.6
+    "medianMs": 0.2,
+    "p95Ms": 0.4
   }
 }

@@ -1,0 +1,5 @@
+homeassistant==2024.8.0
+home-assistant-frontend==20240806.1
+# Keep the historical test runtime compatible with newer package indexes.
+josepy==1.15.0
+pycares==4.11.0

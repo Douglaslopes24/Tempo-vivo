@@ -2,8 +2,8 @@
   "config": {
     "step": {
       "user": {
-        "title": "Tempo Vivo",
-        "description": "Selecione sua entidade weather e os sensores da casa. O card será carregado automaticamente depois de reiniciar e atualizar o navegador.",
+        "title": "Ceuvia Weather Card",
+        "description": "Selecione sua entidade de clima e os sensores da casa. Depois, recarregue o painel para adicionar o Ceuvia Weather Card.",
         "data": {
           "weather": "Entidade de clima",
           "indoor_temperature": "Temperatura da casa",
@@ -26,7 +26,7 @@
   "options": {
     "step": {
       "init": {
-        "title": "Sensores do Tempo Vivo",
+        "title": "Sensores do Ceuvia",
         "description": "Altere ou remova os sensores opcionais.",
         "data": {
           "weather": "Entidade de clima",

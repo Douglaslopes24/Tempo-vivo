@@ -1,9 +1,10 @@
-"""Tempo Vivo: existing weather/sensors and a registered dashboard card."""
+"""Ceuvia Weather Card: existing sensors and an automatically registered card."""
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
 from .frontend import async_setup_frontend
+from .const import NAME
 
 PLATFORMS = [Platform.SENSOR]
 
@@ -15,6 +16,8 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    if entry.title == "Tempo Vivo":
+        hass.config_entries.async_update_entry(entry, title=NAME)
     # Also repair a missing resource when the integration is reloaded.
     await async_setup_frontend(hass)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

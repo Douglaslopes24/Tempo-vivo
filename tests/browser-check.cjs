@@ -7,30 +7,36 @@ const fs = require('node:fs');
  const errors=[];page.on('pageerror',e=>errors.push(String(e)));
  const modulePage=await browser.newPage();
  modulePage.on('pageerror',e=>errors.push(String(e)));
- const cardFile=path.resolve(__dirname,'../custom_components/tempo_vivo/tempo-vivo-card.js');
+ const cardFile=path.resolve(__dirname,'../custom_components/tempo_vivo/ceuvia-weather-card.js');
  const version=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../custom_components/tempo_vivo/manifest.json'),'utf8')).version;
- const resourceUrl='/tempo_vivo/tempo-vivo-card.js?v='+version;
+ const resourceUrl='/ceuvia/ceuvia-weather-card.js?v='+version;
  // Exercise the shipped file as an external JavaScript module, rather than
  // relying only on the demo's inline script. Every request is intercepted;
  // this fixture uses no account, local Home Assistant or external network.
  await modulePage.route('http://tempo-vivo.test/**',route=>{
-  if(new URL(route.request().url()).pathname==='/tempo_vivo/tempo-vivo-card.js')return route.fulfill({contentType:'text/javascript',body:fs.readFileSync(cardFile,'utf8')});
-  return route.fulfill({contentType:'text/html',body:'<!doctype html><script type="module" src="'+resourceUrl+'"></script><tempo-vivo-card></tempo-vivo-card>'});
+  if(new URL(route.request().url()).pathname==='/ceuvia/ceuvia-weather-card.js')return route.fulfill({contentType:'text/javascript',body:fs.readFileSync(cardFile,'utf8')});
+  return route.fulfill({contentType:'text/html',body:'<!doctype html><script type="module" src="'+resourceUrl+'"></script><ceuvia-weather-card></ceuvia-weather-card>'});
  });
  await modulePage.goto('http://tempo-vivo.test/');
- await modulePage.waitForFunction(()=>!!customElements.get('tempo-vivo-card'));
+ await modulePage.waitForFunction(()=>!!customElements.get('ceuvia-weather-card'));
  const moduleChecks=await modulePage.evaluate(()=>{
-  const card=document.querySelector('tempo-vivo-card');
-  card.setConfig({type:'custom:tempo-vivo-card',entity:'weather.forecast_casa'});
+  const card=document.querySelector('ceuvia-weather-card');
+  card.setConfig({type:'custom:ceuvia-weather-card',entity:'weather.forecast_casa'});
   card.hass={states:{'weather.forecast_casa':{state:'sunny',attributes:{temperature:22,temperature_unit:'°C'}}},config:{unit_system:{temperature:'°C'},time_zone:'UTC'},locale:{language:'pt-BR'}};
   return [
-  {name:'Módulo externo registra tempo-vivo-card',ok:!!customElements.get('tempo-vivo-card')},
-  {name:'Editor do card é registrado',ok:!!customElements.get('tempo-vivo-card-editor')},
-  {name:'Card aparece na lista customCards',ok:window.customCards.some(c=>c.type==='tempo-vivo-card')},
-  {name:'YAML mínimo com entidade weather renderiza o clima',ok:card.shadowRoot.querySelector('.temperature .value').textContent==='22'&&!!card.shadowRoot.querySelector('.home')}
+  {name:'Módulo externo registra Ceuvia Weather Card',ok:!!customElements.get('ceuvia-weather-card')},
+  {name:'Editor do card é registrado',ok:!!customElements.get('ceuvia-weather-card-editor')},
+  {name:'Card aparece na lista customCards',ok:window.customCards.some(c=>c.type==='ceuvia-weather-card')},
+  {name:'YAML mínimo com entidade weather renderiza o clima',ok:card.shadowRoot.querySelector('.temperature .value').textContent==='22'&&!!card.shadowRoot.querySelector('.home')},
+  {name:'Tipo antigo continua disponível',ok:!!customElements.get('tempo-vivo-card')&&!!customElements.get('tempo-vivo-card-editor')},
+  {name:'Seletor mostra o nome final sem duplicar o cartão',ok:window.customCards.filter(c=>c.type==='ceuvia-weather-card').length===1&&window.customCards.find(c=>c.type==='ceuvia-weather-card').name==='Ceuvia Weather Card'&&!window.customCards.some(c=>c.type==='tempo-vivo-card')}
  ];});
- await modulePage.addScriptTag({type:'module',url:'http://tempo-vivo.test/tempo_vivo/tempo-vivo-card.js?duplicate=1'});
- moduleChecks.push({name:'Carregamento duplicado não quebra o registro',ok:await modulePage.evaluate(()=>window.customCards.filter(c=>c.type==='tempo-vivo-card').length===1)});
+ await modulePage.addScriptTag({type:'module',url:'http://tempo-vivo.test/ceuvia/ceuvia-weather-card.js?duplicate=1'});
+ moduleChecks.push({name:'Carregamento duplicado não quebra o registro',ok:await modulePage.evaluate(()=>window.customCards.filter(c=>c.type==='ceuvia-weather-card').length===1)});
+ moduleChecks.push(await modulePage.evaluate(()=>{
+  const old=document.createElement('tempo-vivo-card');document.body.append(old);old.setConfig({type:'custom:tempo-vivo-card',entity:'weather.forecast_casa',animation:false});old.hass={states:{'weather.forecast_casa':{state:'rainy',attributes:{temperature:25,temperature_unit:'°C'}}},config:{unit_system:{temperature:'°C'}},language:'pt-BR'};
+  const ok=old.shadowRoot.querySelector('.condition').textContent==='Chuva'&&old.shadowRoot.querySelector('.temperature .value').textContent==='25';old.remove();return {name:'YAML antigo renderiza após a atualização',ok};
+ }));
  await modulePage.close();
  await page.goto('file://'+path.resolve(__dirname,'../demo.html'));
  await page.getByText('Verificações do card',{exact:true}).click();

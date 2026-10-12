@@ -1,0 +1,23 @@
+# Replace entity IDs with your existing Home Assistant entities.
+type: custom:ceuvia-weather-card
+entity: weather.forecast_casa
+indoor_temperature: sensor.temperatura_da_casa
+indoor_humidity: sensor.umidade_da_casa
+title: Tempo agora
+location: Minha casa
+language: pt-BR
+theme: auto
+animation: true
+animation_quality: balanced
+transition_duration: 4.5
+heat_threshold: 35
+# Optional alerts and room sensors:
+# rain_sensor: binary_sensor.chuva
+# storm_alert: binary_sensor.temporal
+# heat_alert: binary_sensor.onda_de_calor
+# rooms:
+#   - name: Sala
+#     entity: sensor.temperatura_sala
+#   - name: Quarto
+#     entity: sensor.temperatura_quarto
+#     humidity_entity: sensor.umidade_quarto

@@ -1,0 +1,50 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Ceuvia Weather Card",
+        "description": "Select your weather entity and home sensors. Reload the dashboard to add Ceuvia Weather Card.",
+        "data": {
+          "weather": "Weather entity",
+          "indoor_temperature": "Home temperature",
+          "indoor_humidity": "Indoor humidity",
+          "outdoor_temperature": "Outdoor temperature",
+          "outdoor_humidity": "Outdoor humidity",
+          "wind": "Wind",
+          "pressure": "Pressure",
+          "visibility": "Visibility",
+          "sunrise": "Sunrise",
+          "sunset": "Sunset",
+          "heat_alert": "Heat wave alert",
+          "rain_sensor": "Rain sensor",
+          "storm_alert": "Storm alert",
+          "feels_like": "Feels like"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Ceuvia sensors",
+        "description": "Change or remove optional sensors.",
+        "data": {
+          "weather": "Weather entity",
+          "indoor_temperature": "Home temperature",
+          "indoor_humidity": "Indoor humidity",
+          "outdoor_temperature": "Outdoor temperature",
+          "outdoor_humidity": "Outdoor humidity",
+          "wind": "Wind",
+          "pressure": "Pressure",
+          "visibility": "Visibility",
+          "sunrise": "Sunrise",
+          "sunset": "Sunset",
+          "heat_alert": "Heat wave alert",
+          "rain_sensor": "Rain sensor",
+          "storm_alert": "Storm alert",
+          "feels_like": "Feels like"
+        }
+      }
+    }
+  }
+}

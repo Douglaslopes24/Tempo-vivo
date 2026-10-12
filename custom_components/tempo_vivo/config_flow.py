@@ -1,11 +1,11 @@
-"""Configure Tempo Vivo through existing entities."""
+"""Configure Ceuvia Weather Card through existing entities."""
 import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.helpers import selector
 
-from .const import DOMAIN, FIELDS, configured_sources
+from .const import DOMAIN, FIELDS, NAME, configured_sources
 
 
 DOMAINS = {key: "sensor" for key in FIELDS}
@@ -24,21 +24,21 @@ def schema(values):
     return vol.Schema(fields)
 
 
-class TempoVivoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class CeuviaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     async def async_step_user(self, user_input=None):
         if user_input is not None:
-            return self.async_create_entry(title="Tempo Vivo", data={k: v for k, v in user_input.items() if v})
+            return self.async_create_entry(title=NAME, data={k: v for k, v in user_input.items() if v})
         return self.async_show_form(step_id="user", data_schema=schema({}))
 
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
-        return TempoVivoOptionsFlow(config_entry)
+        return CeuviaOptionsFlow(config_entry)
 
 
-class TempoVivoOptionsFlow(config_entries.OptionsFlow):
+class CeuviaOptionsFlow(config_entries.OptionsFlow):
     def __init__(self, config_entry):
         self._entry = config_entry
 

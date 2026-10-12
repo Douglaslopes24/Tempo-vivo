@@ -1,7 +1,9 @@
 """Shared configuration keys."""
 DOMAIN = "tempo_vivo"
-VERSION = "2.1.0"
-CARD_URL = "/tempo_vivo/tempo-vivo-card.js"
+NAME = "Ceuvia Weather Card"
+VERSION = "3.0.0"
+CARD_URL = "/ceuvia/ceuvia-weather-card.js"
+LEGACY_CARD_URL = "/tempo_vivo/tempo-vivo-card.js"
 CARD_RESOURCE_URL = f"{CARD_URL}?v={VERSION}"
 FIELDS = (
     "weather", "indoor_temperature", "indoor_humidity", "outdoor_temperature",

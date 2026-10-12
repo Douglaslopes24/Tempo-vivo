@@ -3,14 +3,14 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_state_change_event
 
-from .const import DOMAIN, FIELDS, WEATHER_ATTRIBUTES, configured_sources
+from .const import DOMAIN, FIELDS, NAME, WEATHER_ATTRIBUTES, configured_sources
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
-    async_add_entities([TempoVivoSensor(entry)])
+    async_add_entities([CeuviaSensor(entry)])
 
 
-class TempoVivoSensor(SensorEntity):
+class CeuviaSensor(SensorEntity):
     _attr_name = None
     _attr_icon = "mdi:weather-partly-cloudy"
     _attr_has_entity_name = True
@@ -20,19 +20,16 @@ class TempoVivoSensor(SensorEntity):
         self._attr_unique_id = entry.entry_id
         self._values = configured_sources(entry)
         self._attr_device_info = {
-            "identifiers": {(DOMAIN, entry.entry_id)}, "name": "Tempo Vivo",
-            "manufacturer": "Tempo Vivo", "model": "Sensores existentes",
+            "identifiers": {(DOMAIN, entry.entry_id)}, "name": NAME,
+            "manufacturer": "Ceuvia", "model": "Weather and indoor climate",
         }
-
-    @property
-    def available(self):
-        state = self.hass.states.get(self._values["weather"])
-        return state is not None and state.state not in ("unknown", "unavailable")
 
     @property
     def native_value(self):
         state = self.hass.states.get(self._values["weather"])
-        return state.state if self.available else None
+        # This is an aggregate helper, not the weather provider. Keep its
+        # source mapping and independent indoor readings when weather is down.
+        return state.state if state and state.state not in ("unknown", "unavailable") else None
 
     @property
     def extra_state_attributes(self):

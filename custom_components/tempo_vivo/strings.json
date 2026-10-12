@@ -2,23 +2,23 @@
   "config": {
     "step": {
       "user": {
-        "title": "Tempo Vivo",
-        "description": "Selecione sua entidade weather e os sensores da casa. O card será carregado automaticamente depois de reiniciar e atualizar o navegador.",
+        "title": "Ceuvia Weather Card",
+        "description": "Select your weather entity and home sensors. Reload the dashboard to add Ceuvia Weather Card.",
         "data": {
-          "weather": "Entidade de clima",
-          "indoor_temperature": "Temperatura da casa",
-          "indoor_humidity": "Umidade interna",
-          "outdoor_temperature": "Temperatura externa",
-          "outdoor_humidity": "Umidade externa",
-          "wind": "Vento",
-          "pressure": "Pressão",
-          "visibility": "Visibilidade",
-          "sunrise": "Nascer do sol",
-          "sunset": "Pôr do sol",
-          "heat_alert": "Alerta de onda de calor",
-          "rain_sensor": "Sensor de chuva",
-          "storm_alert": "Alerta de temporal",
-          "feels_like": "Sensação térmica"
+          "weather": "Weather entity",
+          "indoor_temperature": "Home temperature",
+          "indoor_humidity": "Indoor humidity",
+          "outdoor_temperature": "Outdoor temperature",
+          "outdoor_humidity": "Outdoor humidity",
+          "wind": "Wind",
+          "pressure": "Pressure",
+          "visibility": "Visibility",
+          "sunrise": "Sunrise",
+          "sunset": "Sunset",
+          "heat_alert": "Heat wave alert",
+          "rain_sensor": "Rain sensor",
+          "storm_alert": "Storm alert",
+          "feels_like": "Feels like"
         }
       }
     }
@@ -26,23 +26,23 @@
   "options": {
     "step": {
       "init": {
-        "title": "Sensores do Tempo Vivo",
-        "description": "Altere ou remova os sensores opcionais.",
+        "title": "Ceuvia sensors",
+        "description": "Change or remove optional sensors.",
         "data": {
-          "weather": "Entidade de clima",
-          "indoor_temperature": "Temperatura da casa",
-          "indoor_humidity": "Umidade interna",
-          "outdoor_temperature": "Temperatura externa",
-          "outdoor_humidity": "Umidade externa",
-          "wind": "Vento",
-          "pressure": "Pressão",
-          "visibility": "Visibilidade",
-          "sunrise": "Nascer do sol",
-          "sunset": "Pôr do sol",
-          "heat_alert": "Alerta de onda de calor",
-          "rain_sensor": "Sensor de chuva",
-          "storm_alert": "Alerta de temporal",
-          "feels_like": "Sensação térmica"
+          "weather": "Weather entity",
+          "indoor_temperature": "Home temperature",
+          "indoor_humidity": "Indoor humidity",
+          "outdoor_temperature": "Outdoor temperature",
+          "outdoor_humidity": "Outdoor humidity",
+          "wind": "Wind",
+          "pressure": "Pressure",
+          "visibility": "Visibility",
+          "sunrise": "Sunrise",
+          "sunset": "Sunset",
+          "heat_alert": "Heat wave alert",
+          "rain_sensor": "Rain sensor",
+          "storm_alert": "Storm alert",
+          "feels_like": "Feels like"
         }
       }
     }

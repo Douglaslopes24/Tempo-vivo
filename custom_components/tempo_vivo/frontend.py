@@ -7,7 +7,7 @@ from homeassistant.components.http import StaticPathConfig
 from homeassistant.components.lovelace.const import DOMAIN as LOVELACE_DOMAIN
 from homeassistant.core import HomeAssistant
 
-from .const import CARD_RESOURCE_URL, CARD_URL, DOMAIN
+from .const import CARD_RESOURCE_URL, CARD_URL, DOMAIN, LEGACY_CARD_URL
 from .resources import async_register_resource
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,7 +22,12 @@ async def async_setup_frontend(hass: HomeAssistant) -> None:
             await hass.http.async_register_static_paths([
                 StaticPathConfig(
                     CARD_URL,
-                    str(Path(__file__).parent / "tempo-vivo-card.js"),
+                    str(Path(__file__).parent / "ceuvia-weather-card.js"),
+                    False,
+                ),
+                StaticPathConfig(
+                    LEGACY_CARD_URL,
+                    str(Path(__file__).parent / "ceuvia-weather-card.js"),
                     False,
                 )
             ])
@@ -30,12 +35,12 @@ async def async_setup_frontend(hass: HomeAssistant) -> None:
 
         try:
             registered = await async_register_resource(
-                hass.data.get(LOVELACE_DOMAIN), CARD_RESOURCE_URL
+                hass.data.get(LOVELACE_DOMAIN), CARD_RESOURCE_URL, aliases=(LEGACY_CARD_URL,)
             )
         except Exception:  # Resource failures must not disable the sensor.
             _LOGGER.exception(
-                "Falha ao registrar o card Tempo Vivo. Adicione %s como "
-                "Modulo JavaScript em Configuracoes > Paineis > Recursos",
+                "Failed to register Ceuvia Weather Card. Add %s as a "
+                "JavaScript module in Settings > Dashboards > Resources",
                 CARD_RESOURCE_URL,
             )
             return

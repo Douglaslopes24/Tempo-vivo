@@ -1,7 +1,7 @@
 """Persist the card resource without overwriting other dashboard resources."""
 
 
-async def async_register_resource(lovelace_data, url: str) -> bool:
+async def async_register_resource(lovelace_data, url: str, *, aliases: tuple[str, ...] = ()) -> bool:
     """Support both legacy dictionaries and current LovelaceData instances.
 
     False means resources are unavailable or managed in configuration.yaml.
@@ -23,10 +23,10 @@ async def async_register_resource(lovelace_data, url: str) -> bool:
         await resources.async_load()
         resources.loaded = True
 
-    path = url.split("?", 1)[0]
+    paths = {url.split("?", 1)[0], *aliases}
     matches = [
         item for item in resources.async_items()
-        if item.get("url", "").split("?", 1)[0] == path
+        if item.get("url", "").split("?", 1)[0] in paths
     ]
     data = {"url": url, "res_type": "module"}
     if not matches:

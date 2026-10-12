@@ -1,0 +1,39 @@
+name: Reportar problema / Report a bug
+description: Informe um problema com o Ceuvia Weather Card.
+title: "[Bug] "
+body:
+  - type: input
+    id: card_version
+    attributes:
+      label: Versão do Ceuvia / Ceuvia version
+      placeholder: 3.0.0
+    validations:
+      required: true
+  - type: input
+    id: ha_version
+    attributes:
+      label: Versão do Home Assistant / Home Assistant version
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Navegador ou aplicativo e aparelho / Browser or app and device
+  - type: textarea
+    id: behavior
+    attributes:
+      label: O que aconteceu? / What happened?
+      description: Descreva como reproduzir o problema e o resultado esperado.
+    validations:
+      required: true
+  - type: textarea
+    id: card_config
+    attributes:
+      label: YAML do cartão / Card YAML
+      description: Cole apenas a configuração do cartão.
+      render: yaml
+  - type: textarea
+    id: logs
+    attributes:
+      label: Erro exibido / Error message
+      render: text

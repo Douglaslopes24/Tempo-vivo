@@ -1,0 +1,16 @@
+name: Sugerir melhoria / Suggest a feature
+description: Sugira uma melhoria para o Ceuvia Weather Card.
+title: "[Feature] "
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Qual necessidade a ideia resolve? / What need does it solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Como gostaria que funcionasse? / How should it work?
+    validations:
+      required: true

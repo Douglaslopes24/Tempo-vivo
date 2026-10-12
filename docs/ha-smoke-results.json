@@ -1,0 +1,87 @@
+{
+  "home_assistant": "2024.8.0",
+  "version": "3.0.0",
+  "checks": [
+    {
+      "name": "Real Home Assistant frontend starts",
+      "ok": true
+    },
+    {
+      "name": "Legacy integration loads with the Ceuvia name",
+      "ok": true
+    },
+    {
+      "name": "Existing sensor entity ID is preserved",
+      "ok": true
+    },
+    {
+      "name": "Selected indoor sensor is aggregated",
+      "ok": true
+    },
+    {
+      "name": "Canonical module is registered once",
+      "ok": true
+    },
+    {
+      "name": "Legacy resource migrates to canonical URL",
+      "ok": true
+    },
+    {
+      "name": "Unrelated dashboard resource remains",
+      "ok": true
+    },
+    {
+      "name": "HTTP serves /ceuvia/ceuvia-weather-card.js?v=3.0.0",
+      "ok": true
+    },
+    {
+      "name": "Module has a JavaScript content type",
+      "ok": true
+    },
+    {
+      "name": "HTTP serves /tempo_vivo/tempo-vivo-card.js?v=3.0.0",
+      "ok": true
+    },
+    {
+      "name": "Module has a JavaScript content type",
+      "ok": true
+    },
+    {
+      "name": "Weather state updates without polling",
+      "ok": true
+    },
+    {
+      "name": "Options clear removed alert sensors",
+      "ok": true
+    },
+    {
+      "name": "Reload preserves the entity ID",
+      "ok": true
+    },
+    {
+      "name": "Reload keeps one module resource",
+      "ok": true
+    },
+    {
+      "name": "New install completes its config flow",
+      "ok": true
+    },
+    {
+      "name": "Multiple entries do not duplicate resources",
+      "ok": true
+    },
+    {
+      "name": "Unavailable weather marks aggregate condition unknown",
+      "ok": true
+    },
+    {
+      "name": "Unavailable aggregate retains independent indoor data",
+      "ok": true
+    },
+    {
+      "name": "Resource registration is persisted to real storage",
+      "ok": true
+    }
+  ],
+  "passed": true
+}

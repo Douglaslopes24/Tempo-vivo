@@ -1,12 +1,21 @@
-<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tempo Vivo — demonstração do card</title>
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ceuvia Weather Card — demonstração do card</title>
 <style>
 :root{font-family:Arial,sans-serif;color:#dae6f2;background:#071522;color-scheme:dark}*{box-sizing:border-box}body{margin:0;padding:36px 24px 60px}main{max-width:940px;margin:auto}h1{font-size:28px;font-weight:450;margin:0 0 8px}p{font-size:14px;color:#9bb1c8;line-height:1.65;margin:0 0 23px}.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:23px}.toolbar button,.settings button{background:#142e46;color:#d9e8f6;border:1px solid #48627c66;padding:10px 14px;border-radius:10px;cursor:pointer;font:inherit;font-size:13px}button[aria-pressed=true]{background:#284c70;border-color:#80b5df}.card-wrap{width:780px;max-width:100%;margin:auto;transition:width .3s}.settings{display:flex;gap:15px;flex-wrap:wrap;align-items:center;margin:25px 0;font-size:12px;color:#a5bcd3}.settings select{padding:8px;border-radius:8px;background:#142e46;color:inherit;border:1px solid #45637f}#editor{max-width:780px;margin:24px auto;background:#152737;padding:20px;border-radius:12px}#editor[hidden]{display:none}#editor{--primary-text-color:#dfeaf4;--card-background-color:#1a3045;--divider-color:#45627a}.details{margin-top:28px;color:#91acc5;font-size:12px}#report{padding:16px;background:#102c36;border-radius:12px;line-height:1.7;color:#b8e9cd}#report:empty{display:none}.case{padding:5px 0;border-bottom:1px solid #44657833}.fail{color:#ffa4a4}footer{margin-top:23px;font-size:12px;color:#768fa8}@media(max-width:600px){body{padding:22px 12px}.toolbar{gap:6px}.toolbar button{font-size:12px;padding:9px 11px}h1{font-size:23px}}
-</style><main><h1>Tempo Vivo</h1><p>Esta demonstração usa o card real. Os dados abaixo são simulados. Escolha um clima para ver a transição.</p><div class="toolbar" id="weather-buttons"></div><div class="card-wrap"><tempo-vivo-card id="card"></tempo-vivo-card></div><div class="settings"><label>Largura <select id="width"><option value="780">Painel amplo</option><option value="440">Card normal</option><option value="320">Celular</option></select></label><label>Tema <select id="theme"><option value="dark">Escuro</option><option value="light">Claro</option></select></label><label>Qualidade <select id="quality"><option value="low">Leve</option><option value="balanced" selected>Equilibrada</option><option value="high">Detalhada</option></select></label><button id="rooms">Mostrar cômodos</button><button id="edit">Editar sensores</button><button id="update-temp">Atualizar temperatura</button></div><div id="editor" hidden></div><details class="details"><summary>Verificações do card</summary><p style="margin-top:15px">Teste de integração do componente com estados simulados do Home Assistant.</p><button id="run-tests">Executar verificações</button><div id="report" aria-live="polite"></div></details><footer>Versão 2.1.0 · Nuvens com volume · Chuva em profundidade · Céu desenhado localmente · Animações respeitam movimento reduzido</footer></main>
-<script>/* Tempo Vivo 2.1.0 — Home Assistant card. MIT. No CDN or runtime dependency. */
+</style><main><div style="display:flex;align-items:center;gap:15px;margin-bottom:18px"><div style="width:55px;height:55px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">Ceuvia</title>
+  <defs><linearGradient id="sky" x2="1" y2="1"><stop stop-color="#64c8e8"/><stop offset="1" stop-color="#3984b7"/></linearGradient></defs>
+  <rect width="128" height="128" rx="32" fill="#10283d"/>
+  <path d="M92 32a43 43 0 1 0 0 64" fill="none" stroke="url(#sky)" stroke-width="9" stroke-linecap="round"/>
+  <circle cx="82" cy="44" r="10" fill="#f0d2a0"/>
+  <path d="M42 76a11 11 0 0 1 5-21 17 17 0 0 1 32 3 9 9 0 0 1 2 18H42Z" fill="#e2edf5"/>
+  <path d="m53 87-3 7m14-7-3 7m14-7-3 7" stroke="#66c2df" stroke-width="3" stroke-linecap="round"/>
+</svg>
+</div><div><h1>Ceuvia Weather Card</h1><span style="color:#a5bed1;font-size:13px">O clima ganha vida.</span></div></div><p>Esta demonstração usa o card real. Os dados abaixo são simulados. Escolha um clima para ver a transição.</p><div class="toolbar" id="weather-buttons"></div><div class="card-wrap"><ceuvia-weather-card id="card"></ceuvia-weather-card></div><div class="settings"><label>Largura <select id="width"><option value="780">Painel amplo</option><option value="440">Card normal</option><option value="320">Celular</option></select></label><label>Tema <select id="theme"><option value="dark">Escuro</option><option value="light">Claro</option></select></label><label>Qualidade <select id="quality"><option value="low">Leve</option><option value="balanced" selected>Equilibrada</option><option value="high">Detalhada</option></select></label><button id="rooms">Mostrar cômodos</button><button id="edit">Editar sensores</button><button id="update-temp">Atualizar temperatura</button></div><div id="editor" hidden></div><details class="details"><summary>Verificações do card</summary><p style="margin-top:15px">Teste de integração do componente com estados simulados do Home Assistant.</p><button id="run-tests">Executar verificações</button><div id="report" aria-live="polite"></div></details><footer>Versão 3.0.0 · Nuvens com volume · Chuva em profundidade · Céu desenhado localmente · Animações respeitam movimento reduzido</footer></main>
+<script>/* Ceuvia Weather Card 3.0.0 — Home Assistant card. MIT. No CDN or runtime dependency. */
 (() => {
   'use strict';
-  if (customElements.get('tempo-vivo-card')) return;
-  const VERSION = '2.1.0';
+  if (customElements.get('ceuvia-weather-card')) return;
+  const VERSION = '3.0.0';
   const INVALID = new Set(['unknown', 'unavailable', '', 'None']);
   const CONDITIONS = {
     sunny: 'Ensolarado', 'clear-night': 'Céu limpo', partlycloudy: 'Parcialmente nublado',
@@ -15,6 +24,49 @@
     fog: 'Neblina', hail: 'Granizo', windy: 'Vento', 'windy-variant': 'Vento e nuvens',
     exceptional: 'Condição excepcional'
   };
+  const UI_TEXT = {
+    pt: {
+      conditions: CONDITIONS, title: 'Tempo agora', location: 'Clima da sua casa', now: 'Agora', noData: 'Sem dados',
+      unknown: 'Condição desconhecida', unavailable: 'Clima indisponível', heat: 'Calor intenso', heatAlert: 'Onda de calor · sensor de alerta',
+      home: 'Temperatura da casa', indoorHumidity: 'Umidade interna', weatherDetails: 'Detalhes do clima', homeDetails: 'Detalhes da temperatura da casa',
+      missing: id=>`Entidade ${id} não encontrada.`, unavailableNotice: 'A entidade de clima está indisponível.',
+      chooseIndoor: 'Selecione o sensor de temperatura da casa no editor.', indoorUnavailable: 'Sensor de temperatura da casa indisponível.',
+      metrics: {wind:'Vento',humidity:'Umidade',pressure:'Pressão',visibility:'Visibilidade',sunrise:'Nascer do sol',sunset:'Pôr do sol',feels:'Sensação térmica'},
+      fields: {}, intro: 'Selecione a entidade de clima e os sensores da casa. Os sensores adicionais são opcionais.',
+      chooseEntity: 'Selecione uma entidade', automatic: 'Automático / não configurado', extra: 'Sensores e alertas adicionais', rooms: 'Temperaturas por cômodo',
+      addRoom: 'Adicionar cômodo', room: 'Cômodo', name: 'Nome', temperature: 'Temperatura', humidity: 'Umidade', remove: 'Remover', noRoomSensors: 'Nenhum sensor de temperatura disponível',
+      appearance: 'Aparência', homeTheme: 'Tema do Home Assistant', dark: 'Escuro', light: 'Claro', disableHeat: 'Vazio desativa',
+      heatLimit: 'Calor intenso a partir de (°C)', motion: 'Ativar animações', quality: 'Qualidade da animação',
+      low: 'Leve · tablets', balanced: 'Equilibrada', high: 'Detalhada · até 60 fps', duration: 'Transição entre climas (segundos)',
+      language: 'Idioma', autoLanguage: 'Idioma do Home Assistant', entityError: 'Selecione a entidade de clima ou o sensor Ceuvia.',
+      roomsError: 'Cada cômodo precisa de uma entidade de temperatura.', heatError: 'O limite de calor deve ser um número em °C ou false.',
+      qualityError: 'Qualidade da animação: use low, balanced ou high.', durationError: 'A duração da transição deve ficar entre 2 e 12 segundos.',
+      languageError: 'Idioma: use auto, pt-BR ou en.', themeError: 'Aparência: use auto, dark ou light.'
+    },
+    en: {
+      conditions: {sunny:'Sunny','clear-night':'Clear sky',partlycloudy:'Partly cloudy',cloudy:'Overcast',rainy:'Rain',pouring:'Heavy rain',
+        lightning:'Thunderstorm','lightning-rainy':'Thunderstorm with rain',snowy:'Snow','snowy-rainy':'Rain and snow',fog:'Fog',hail:'Hail',
+        windy:'Windy','windy-variant':'Wind and clouds',exceptional:'Exceptional weather'},
+      title:'Weather now',location:'Weather at home',now:'Now',noData:'No data',unknown:'Unknown condition',unavailable:'Weather unavailable',
+      heat:'Intense heat',heatAlert:'Heat wave · alert sensor',home:'Home temperature',indoorHumidity:'Indoor humidity',
+      weatherDetails:'Weather details',homeDetails:'Home temperature details',missing:id=>`Entity ${id} not found.`,
+      unavailableNotice:'The weather entity is unavailable.',chooseIndoor:'Select the home temperature sensor in the editor.',indoorUnavailable:'Home temperature sensor unavailable.',
+      metrics:{wind:'Wind',humidity:'Humidity',pressure:'Pressure',visibility:'Visibility',sunrise:'Sunrise',sunset:'Sunset',feels:'Feels like'},
+      fields:{entity:'Weather or Ceuvia sensor',title:'Title',location:'Location (optional)',indoor_temperature:'Home temperature',indoor_humidity:'Indoor humidity',
+        outdoor_temperature:'Outdoor temperature',outdoor_humidity:'Outdoor humidity',wind:'Wind',pressure:'Pressure',visibility:'Visibility',sunrise:'Sunrise',sunset:'Sunset',
+        heat_alert:'Heat wave alert',rain_sensor:'Rain sensor',storm_alert:'Storm alert',feels_like:'Feels like',sun_entity:'Sun entity'},
+      intro:'Select your weather entity and home sensors. Additional sensors are optional.',chooseEntity:'Select an entity',automatic:'Automatic / not configured',
+      extra:'Additional sensors and alerts',rooms:'Room temperatures',addRoom:'Add room',room:'Room',name:'Name',temperature:'Temperature',humidity:'Humidity',remove:'Remove',noRoomSensors:'No temperature sensor available',
+      appearance:'Appearance',homeTheme:'Home Assistant theme',dark:'Dark',light:'Light',disableHeat:'Empty disables',heatLimit:'Intense heat threshold (°C)',motion:'Enable animations',
+      quality:'Animation quality',low:'Light · tablets',balanced:'Balanced',high:'Detailed · up to 60 fps',duration:'Weather transition (seconds)',
+      language:'Language',autoLanguage:'Home Assistant language',entityError:'Select a weather entity or Ceuvia sensor.',roomsError:'Each room needs a temperature entity.',
+      heatError:'The heat threshold must be a number in °C or false.',qualityError:'Animation quality: use low, balanced or high.',
+      durationError:'The transition duration must be between 2 and 12 seconds.',languageError:'Language: use auto, pt-BR or en.',themeError:'Appearance: use auto, dark or light.'
+    }
+  };
+  const uiLanguage = (config, hass) => config?.language && config.language !== 'auto' ? config.language : hass?.locale?.language || hass?.language || 'pt-BR';
+  const uiText = (config, hass) => UI_TEXT[uiLanguage(config,hass).toLowerCase().startsWith('pt') ? 'pt' : 'en'];
+
   const ICON_PATHS = {
     wind: 'M3 8h12a3 3 0 1 0-3-3 M2 12h17a3 3 0 1 1-3 3 M4 16h5a3 3 0 1 1-3 3',
     humidity: 'M12 3C8 9 5 12 5 16a7 7 0 0 0 14 0c0-4-3-7-7-13Z M9 16a3 3 0 0 0 3 3',
@@ -413,11 +465,11 @@ ha-card[data-theme=light] .home{background:#ecf3f9;color:#223b54}ha-card[data-th
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
 `;
   const sensorFields = ['indoor_temperature','indoor_humidity','outdoor_temperature','outdoor_humidity','wind','pressure','visibility','sunrise','sunset','heat_alert','rain_sensor','storm_alert','feels_like'];
-  class TempoVivoCard extends HTMLElement {
-    static getConfigElement() { return document.createElement('tempo-vivo-card-editor'); }
+  class CeuviaCard extends HTMLElement {
+    static getConfigElement() { return document.createElement('ceuvia-weather-card-editor'); }
     static getStubConfig(hass, entities = [], fallback = []) {
       const ids = [...entities, ...fallback, ...Object.keys(hass?.states || {})];
-      return { entity: ids.find(id => isAggregate(hass?.states?.[id])) || ids.find(id => id.startsWith('weather.')) || '', title: 'Tempo agora', animation: true };
+      return { entity: ids.find(id => isAggregate(hass?.states?.[id])) || ids.find(id => id.startsWith('weather.')) || '', title: '', animation: true };
     }
     constructor() {
       super(); this.attachShadow({ mode: 'open' }); this._config = null; this._hass = null; this._visible = true; this._listening = false;
@@ -428,13 +480,14 @@ ha-card[data-theme=light] .home{background:#ecf3f9;color:#223b54}ha-card[data-th
       this._root = null;
     }
     setConfig(config) {
-      if (!config || !(config.entity || config.weather_entity)) throw new Error('Selecione a entidade de clima ou o sensor Tempo Vivo.');
-      if (config.rooms && (!Array.isArray(config.rooms) || config.rooms.some(r => !r.entity))) throw new Error('Cada cômodo precisa de uma entidade de temperatura.');
+      const text = uiText(config, this._hass);
+      if (!config || !(config.entity || config.weather_entity)) throw new Error(text.entityError);
+      if (config.rooms && (!Array.isArray(config.rooms) || config.rooms.some(r => !r || typeof r.entity !== 'string' || !r.entity))) throw new Error(text.roomsError);
       const duration = number(config.heat_threshold);
-      if (config.heat_threshold !== undefined && config.heat_threshold !== false && duration === null) throw new Error('O limite de calor deve ser um número em °C ou false.');
-      if (config.animation_quality !== undefined && !WEATHER_QUALITY[config.animation_quality]) throw new Error('Qualidade da animação: use low, balanced ou high.');
-      if (config.transition_duration !== undefined && (number(config.transition_duration) === null || Number(config.transition_duration) < 2 || Number(config.transition_duration) > 12)) throw new Error('A duração da transição deve ficar entre 2 e 12 segundos.');
-      this._config = { title: 'Tempo agora', animation: true, animation_quality: 'balanced', transition_duration: 4.5, theme: 'auto', heat_threshold: 35, sun_entity: 'sun.sun', ...config };
+      if (config.heat_threshold !== undefined && config.heat_threshold !== false && duration === null) throw new Error(text.heatError);
+      if (config.animation_quality !== undefined && !Object.hasOwn(WEATHER_QUALITY,config.animation_quality)) throw new Error(text.qualityError);
+      if (config.transition_duration !== undefined && (number(config.transition_duration) === null || Number(config.transition_duration) < 2 || Number(config.transition_duration) > 12)) throw new Error(text.durationError);
+      this._config = { title: '', animation: true, animation_quality: 'balanced', transition_duration: 4.5, theme: 'auto', heat_threshold: 35, sun_entity: 'sun.sun', ...config };
       this._build(); this._render();
     }
     set hass(hass) { this._hass = hass; this._render(); }
@@ -477,8 +530,8 @@ ha-card[data-theme=light] .home{background:#ecf3f9;color:#223b54}ha-card[data-th
     }
     _render() {
       if (!this._root || !this._hass || !this._config) return;
-      const hass = this._hass, cfg = this._config, root = this.shadowRoot;
-      const baseId = cfg.entity || cfg.weather_entity, rawBase = hass.states?.[baseId], base = stateOf(hass, baseId), a = base?.attributes || {};
+      const hass = this._hass, cfg = this._config, root = this.shadowRoot, text = uiText(cfg,hass);
+      const baseId = cfg.entity || cfg.weather_entity, rawBase = hass.states?.[baseId], base = stateOf(hass, baseId), a = rawBase?.attributes || {};
       const sources = configSources(a);
       const weatherId = cfg.weather_entity || (baseId.startsWith('weather.') ? baseId : sources.weather);
       const weather = stateOf(hass, weatherId), weatherAttrs = weather?.attributes || (weatherId && hass.states?.[weatherId] ? {} : a.weather_attributes || {});
@@ -504,13 +557,13 @@ ha-card[data-theme=light] .home{background:#ecf3f9;color:#223b54}ha-card[data-th
       const threshold = cfg.heat_threshold;
       const hot = heatOn || (threshold !== false && out && toCelsius(out.value, out.unit) >= Number(threshold));
       const sun = stateOf(hass, cfg.sun_entity); const night = condition === 'clear-night' || (sun?.state === 'below_horizon' && !['sunny'].includes(condition));
-      const locale = hass.locale?.language || hass.language || 'pt-BR';
+      const locale = uiLanguage(cfg,hass);
       let formatter; try { formatter = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }); } catch { formatter = new Intl.NumberFormat('pt-BR',{maximumFractionDigits:1}); }
       const fmt = reading => reading && number(reading.value) !== null ? `${formatter.format(Number(reading.value))}${reading.unit ? ' ' + reading.unit : ''}` : null;
       const time = value => { if (!value) return null; const d = new Date(value); if (Number.isNaN(d.valueOf())) return null; try { return new Intl.DateTimeFormat(locale,{hour:'2-digit',minute:'2-digit',timeZone:hass.config?.time_zone}).format(d); } catch { return d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); } };
       const wind = sensor('wind') || attr('wind_speed','wind_speed_unit');
       let windValue = fmt(wind); const bearing = weatherAttrs.wind_bearing;
-      if (windValue && bearing != null) { const directions=['N','NNE','NE','ENE','L','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO']; windValue += ' · ' + (number(bearing) !== null ? directions[Math.round(Number(bearing)/22.5)%16] || 'N' : String(bearing)); }
+      if (windValue && bearing != null) { const directions=locale.toLowerCase().startsWith('pt')?['N','NNE','NE','ENE','L','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO']:['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW']; windValue += ' · ' + (number(bearing) !== null ? directions[Math.round(Number(bearing)/22.5)%16] || 'N' : String(bearing)); }
       const data = {
         wind: windValue, humidity: fmt(sensor('outdoor_humidity') || attr('humidity','','%')),
         pressure: fmt(sensor('pressure') || attr('pressure','pressure_unit')),
@@ -519,19 +572,23 @@ ha-card[data-theme=light] .home{background:#ecf3f9;color:#223b54}ha-card[data-th
         feels: fmt(temperature(sensor('feels_like') || attr('apparent_temperature','temperature_unit',unit)))
       };
       this._weatherId = weatherId || baseId; this._indoorId = cfg.indoor_temperature || sources.indoor_temperature;
-      root.querySelector('h2').textContent = cfg.title; root.querySelector('.subtitle').textContent = cfg.location || weather?.attributes?.friendly_name || 'Clima da sua casa';
-      root.querySelector('.status').textContent = sourceAvailable ? 'Agora' : 'Sem dados';
+      root.querySelector('h2').textContent = cfg.title || text.title; root.querySelector('.subtitle').textContent = cfg.location || weather?.attributes?.friendly_name || text.location;
+      root.querySelector('.status').textContent = sourceAvailable ? text.now : text.noData;
       root.querySelector('.temperature .value').textContent = out ? formatter.format(out.value) : '—'; root.querySelector('.temperature .unit').textContent = out ? out.unit : '';
-      root.querySelector('.condition').textContent = sourceAvailable ? CONDITIONS[condition] || 'Condição desconhecida' : 'Clima indisponível';
-      const alert = root.querySelector('.alert'); alert.hidden = !hot; alert.querySelector('span').textContent = heatOn ? 'Onda de calor · sensor de alerta' : 'Calor intenso';
-      for (const [key, value] of Object.entries(data)) { this._metrics[key].hidden = !value; this._metrics[key].querySelector('.metric-value').textContent = value || ''; }
+      root.querySelector('.condition').textContent = sourceAvailable ? text.conditions[condition] || text.unknown : text.unavailable;
+      const alert = root.querySelector('.alert'); alert.hidden = !hot; alert.querySelector('span').textContent = heatOn ? text.heatAlert : text.heat;
+      for (const [key, value] of Object.entries(data)) { this._metrics[key].querySelector('.caption').textContent = text.metrics[key]; this._metrics[key].hidden = !value; this._metrics[key].querySelector('.metric-value').textContent = value || ''; }
+      root.querySelector('.house .home-label').textContent = text.home;
+      root.querySelector('.home-humidity .home-label').textContent = text.indoorHumidity;
+      root.querySelector('.temperature').setAttribute('aria-label',text.weatherDetails);
+      root.querySelector('.home-temp').setAttribute('aria-label',text.homeDetails);
       root.querySelector('.home-temp').textContent = fmt(indoor) || '—';
       const ih = fmt(sensor('indoor_humidity')); root.querySelector('.home-humidity').hidden = !ih; root.querySelector('.home-humidity .value').textContent = ih || '';
       const notice = root.querySelector('.notice'); const messages = [];
-      if (!rawBase) messages.push(`Entidade ${baseId} não encontrada.`);
-      else if (!sourceAvailable) messages.push('A entidade de clima está indisponível.');
-      if (!this._indoorId) messages.push('Selecione o sensor de temperatura da casa no editor.');
-      else if (!indoor) messages.push('Sensor de temperatura da casa indisponível.');
+      if (!rawBase) messages.push(text.missing(baseId));
+      else if (!sourceAvailable) messages.push(text.unavailableNotice);
+      if (!this._indoorId) messages.push(text.chooseIndoor);
+      else if (!indoor) messages.push(text.indoorUnavailable);
       notice.hidden = !messages.length; notice.textContent = messages.join(' ');
       this._root.dataset.theme = cfg.theme === 'auto' ? (hass.themes?.darkMode === false ? 'light' : 'dark') : cfg.theme;
       const sceneHeat = Boolean(hot && !['rainy','pouring','lightning','lightning-rainy','snowy','snowy-rainy','hail'].includes(condition));
@@ -553,7 +610,7 @@ ha-card[data-theme=light] .home{background:#ecf3f9;color:#223b54}ha-card[data-th
       }
       el.hidden = !rooms.length;
       rooms.forEach((room, i) => {
-        const st = stateOf(this._hass, room.entity), val = number(st?.state), humidity = stateOf(this._hass, room.humidity_entity), hu = number(humidity?.state);
+        const st = stateOf(this._hass, room.entity), val = number(st?.attributes?.current_temperature ?? st?.state), humidity = stateOf(this._hass, room.humidity_entity), hu = number(humidity?.state);
         const button = el.children[i]; button.querySelector('.room-name').textContent = room.name || st?.attributes?.friendly_name || room.entity;
         button.querySelector('.room-value').textContent = val === null ? '—' : formatter.format(convertTemperature(val, st.attributes.unit_of_measurement || unit, unit)) + ' ' + unit;
         button.querySelector('.room-humidity').textContent = hu === null ? '' : formatter.format(hu) + ' %';
@@ -562,23 +619,24 @@ ha-card[data-theme=light] .home{background:#ecf3f9;color:#223b54}ha-card[data-th
   }
 
   const FIELD_LABELS = {
-    entity: 'Clima ou sensor Tempo Vivo', title: 'Título', location: 'Local (opcional)',
+    entity: 'Clima ou sensor Ceuvia', title: 'Título', location: 'Local (opcional)',
     indoor_temperature: 'Temperatura da casa', indoor_humidity: 'Umidade interna', outdoor_temperature: 'Temperatura externa',
     outdoor_humidity: 'Umidade externa', wind: 'Vento', pressure: 'Pressão', visibility: 'Visibilidade',
     sunrise: 'Nascer do sol', sunset: 'Pôr do sol', heat_alert: 'Alerta de onda de calor', rain_sensor: 'Sensor de chuva', storm_alert: 'Alerta de temporal', feels_like: 'Sensação térmica', sun_entity: 'Entidade Sol'
   };
-  class TempoVivoEditor extends HTMLElement {
+  class CeuviaEditor extends HTMLElement {
     constructor() { super(); this.attachShadow({mode:'open'}); this._config={}; this._hass=null; }
     setConfig(config) { this._config = {...config}; this.render(); }
-    set hass(value) { const first=!this._hass; this._hass=value; if(first) this.render(); }
+    set hass(value) { const first=!this._hass, language=uiLanguage(this._config,this._hass); this._hass=value; if(first||language!==uiLanguage(this._config,value)) this.render(); }
     connectedCallback() { this.render(); }
     change(key, value) {
       const next={...this._config}; if(value === '' || value === undefined) delete next[key]; else next[key]=value;
       this._config=next; this.dispatchEvent(new CustomEvent('config-changed',{detail:{config:next},bubbles:true,composed:true}));
     }
     select(key) {
+      const text=uiText(this._config,this._hass);
       const select=document.createElement('select'); select.dataset.key=key;
-      const placeholder=document.createElement('option'); placeholder.value=''; placeholder.textContent=key==='entity'?'Selecione uma entidade':'Automático / não configurado';select.append(placeholder);
+      const placeholder=document.createElement('option'); placeholder.value=''; placeholder.textContent=key==='entity'?text.chooseEntity:text.automatic;select.append(placeholder);
       let ids=Object.keys(this._hass?.states||{}).filter(id=>key==='entity'?id.startsWith('weather.')||isAggregate(this._hass.states[id]):key==='sun_entity'?id.startsWith('sun.'):['heat_alert','rain_sensor','storm_alert'].includes(key)?id.startsWith('binary_sensor.'):id.startsWith('sensor.')||key.includes('temperature')&&id.startsWith('climate.'));
       const saved=this._config[key]; if(saved&&!ids.includes(saved))ids.push(saved);
       ids.sort((a,b)=>a.localeCompare(b));
@@ -588,37 +646,48 @@ ha-card[data-theme=light] .home{background:#ecf3f9;color:#223b54}ha-card[data-th
     wrap(label, input) { const el=document.createElement('label'); const caption=document.createElement('span'); caption.textContent=label;el.append(caption,input);return el; }
     render() {
       if(!this.isConnected)return;
+      const t=uiText(this._config,this._hass), field=key=>t.fields[key]||FIELD_LABELS[key];
       this.shadowRoot.innerHTML='<style>:host{display:block;color:var(--primary-text-color,#23394c);font-family:var(--primary-font-family,Arial,sans-serif)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}label{display:flex;flex-direction:column;gap:6px;font-size:12px}select,input{font:inherit;color:inherit;background:var(--card-background-color,#fff);border:1px solid var(--divider-color,#b8c9d7);border-radius:9px;padding:12px;min-width:0;width:100%;box-sizing:border-box}summary{cursor:pointer;padding:16px 0;font-weight:500}p{font-size:12px;line-height:1.6;opacity:.75}.row{display:flex;gap:8px;align-items:center}.row input{width:auto}.full{grid-column:1/-1}button{padding:9px;border:1px solid #a4bacb;border-radius:8px;background:transparent;color:inherit;cursor:pointer}.rooms{display:flex;flex-direction:column;gap:10px}.room-edit{border:1px solid #bac9d755;border-radius:9px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:420px){.grid,.room-edit{grid-template-columns:1fr}}</style><p>Selecione uma entidade weather ou o sensor da integração. Os sensores extras são opcionais.</p><div class="grid"></div><details><summary>Sensores e alertas adicionais</summary><div class="grid extra"></div></details><details><summary>Temperaturas por cômodo</summary><div class="rooms"></div><button class="add-room" type="button">Adicionar cômodo</button></details>';
+      this.shadowRoot.querySelector('p').textContent=t.intro;
+      this.shadowRoot.querySelectorAll('summary')[0].textContent=t.extra;
+      this.shadowRoot.querySelectorAll('summary')[1].textContent=t.rooms;
+      this.shadowRoot.querySelector('.add-room').textContent=t.addRoom;
       const grid=this.shadowRoot.querySelector('.grid');
       const text=(key,label)=>{const x=document.createElement('input');x.value=this._config[key]||'';x.dataset.key=key;x.addEventListener('change',()=>this.change(key,x.value));return this.wrap(label,x);};
-      grid.append(this.wrap(FIELD_LABELS.entity,this.select('entity')),text('title','Título'),this.wrap(FIELD_LABELS.indoor_temperature,this.select('indoor_temperature')),this.wrap(FIELD_LABELS.indoor_humidity,this.select('indoor_humidity')),text('location','Local (opcional)'));
-      const theme=document.createElement('select');for(const [v,label] of [['auto','Tema do Home Assistant'],['dark','Escuro'],['light','Claro']]){const o=document.createElement('option');o.value=v;o.textContent=label;theme.append(o);}theme.value=this._config.theme||'auto';theme.dataset.key='theme';theme.addEventListener('change',()=>this.change('theme',theme.value));grid.append(this.wrap('Aparência',theme));
-      const heat=document.createElement('input');heat.type='number';heat.min='20';heat.max='60';heat.step='1';heat.value=this._config.heat_threshold===false?'':this._config.heat_threshold??35;heat.placeholder='Vazio desativa';heat.dataset.key='heat_threshold';heat.addEventListener('change',()=>this.change('heat_threshold',heat.value===''?false:Number(heat.value)));grid.append(this.wrap('Calor intenso a partir de (°C)',heat));
-      const motion=document.createElement('input');motion.type='checkbox';motion.checked=this._config.animation!==false;motion.dataset.key='animation';motion.addEventListener('change',()=>this.change('animation',motion.checked));const motionLabel=this.wrap('Ativar animações',motion);motionLabel.className='row';grid.append(motionLabel);
+      grid.append(this.wrap(field('entity'),this.select('entity')),text('title',field('title')),this.wrap(field('indoor_temperature'),this.select('indoor_temperature')),this.wrap(field('indoor_humidity'),this.select('indoor_humidity')),text('location',field('location')));
+      const theme=document.createElement('select');for(const [v,label] of [['auto',t.homeTheme],['dark',t.dark],['light',t.light]]){const o=document.createElement('option');o.value=v;o.textContent=label;theme.append(o);}theme.value=this._config.theme||'auto';theme.dataset.key='theme';theme.addEventListener('change',()=>this.change('theme',theme.value));grid.append(this.wrap(t.appearance,theme));
+      const heat=document.createElement('input');heat.type='number';heat.min='20';heat.max='60';heat.step='1';heat.value=this._config.heat_threshold===false?'':this._config.heat_threshold??35;heat.placeholder=t.disableHeat;heat.dataset.key='heat_threshold';heat.addEventListener('change',()=>this.change('heat_threshold',heat.value===''?false:Number(heat.value)));grid.append(this.wrap(t.heatLimit,heat));
+      const motion=document.createElement('input');motion.type='checkbox';motion.checked=this._config.animation!==false;motion.dataset.key='animation';motion.addEventListener('change',()=>this.change('animation',motion.checked));const motionLabel=this.wrap(t.motion,motion);motionLabel.className='row';grid.append(motionLabel);
       const quality=document.createElement('select');quality.dataset.key='animation_quality';
-      for(const [value,label] of [['low','Leve · tablets'],['balanced','Equilibrada'],['high','Detalhada · até 60 fps']]){const option=document.createElement('option');option.value=value;option.textContent=label;quality.append(option);}
-      quality.value=this._config.animation_quality||'balanced';quality.addEventListener('change',()=>this.change('animation_quality',quality.value));grid.append(this.wrap('Qualidade da animação',quality));
-      const transition=document.createElement('input');transition.type='number';transition.min='2';transition.max='12';transition.step='.5';transition.dataset.key='transition_duration';transition.value=this._config.transition_duration??4.5;transition.addEventListener('change',()=>{const value=Number(transition.value);if(Number.isFinite(value)&&value>=2&&value<=12)this.change('transition_duration',value);});grid.append(this.wrap('Transição entre climas (segundos)',transition));
-      const extra=this.shadowRoot.querySelector('.extra');for(const key of [...sensorFields.filter(k=>!['indoor_temperature','indoor_humidity'].includes(k)),'sun_entity'])extra.append(this.wrap(FIELD_LABELS[key],this.select(key)));
-      this.shadowRoot.querySelector('.add-room').addEventListener('click',()=>{const first=Object.keys(this._hass?.states||{}).find(id=>this._hass.states[id].attributes?.device_class==='temperature');if(first){this.change('rooms',[...(this._config.rooms||[]),{entity:first,name:'Cômodo'}]);this.render();}});
+      for(const [value,label] of [['low',t.low],['balanced',t.balanced],['high',t.high]]){const option=document.createElement('option');option.value=value;option.textContent=label;quality.append(option);}
+      quality.value=this._config.animation_quality||'balanced';quality.addEventListener('change',()=>this.change('animation_quality',quality.value));grid.append(this.wrap(t.quality,quality));
+      const transition=document.createElement('input');transition.type='number';transition.min='2';transition.max='12';transition.step='.5';transition.dataset.key='transition_duration';transition.value=this._config.transition_duration??4.5;transition.addEventListener('change',()=>{const value=Number(transition.value);if(Number.isFinite(value)&&value>=2&&value<=12)this.change('transition_duration',value);});grid.append(this.wrap(t.duration,transition));
+      const language=document.createElement('select');language.dataset.key='language';for(const [value,label] of [['auto',t.autoLanguage],['pt-BR','Português'],['en','English']]){const option=document.createElement('option');option.value=value;option.textContent=label;language.append(option);}language.value=this._config.language||'auto';language.addEventListener('change',()=>{this.change('language',language.value);this.render();});grid.append(this.wrap(t.language,language));
+      const extra=this.shadowRoot.querySelector('.extra');for(const key of [...sensorFields.filter(k=>!['indoor_temperature','indoor_humidity'].includes(k)),'sun_entity'])extra.append(this.wrap(field(key),this.select(key)));
+      const firstRoom=Object.keys(this._hass?.states||{}).find(id=>id.startsWith('climate.')||id.startsWith('sensor.')&&(this._hass.states[id].attributes?.device_class==='temperature'||['°C','°F','K'].includes(this._hass.states[id].attributes?.unit_of_measurement)));
+      const addRoom=this.shadowRoot.querySelector('.add-room');addRoom.disabled=!firstRoom;addRoom.title=firstRoom?'':t.noRoomSensors;
+      addRoom.addEventListener('click',()=>{if(firstRoom){this.change('rooms',[...(this._config.rooms||[]),{entity:firstRoom,name:t.room}]);this.render();}});
       (this._config.rooms||[]).forEach((room,index)=>{
         const r=document.createElement('div');r.className='room-edit';
-        const name=document.createElement('input');name.value=room.name||'';name.placeholder='Nome';
+        const name=document.createElement('input');name.value=room.name||'';name.placeholder=t.name;
         const saved=this._config;this._config={...saved,indoor_temperature:room.entity,indoor_humidity:room.humidity_entity};const entity=this.select('indoor_temperature'),humidity=this.select('indoor_humidity');this._config=saved;
         // Replace these selectors with independent controls to preserve the room list.
         const e=entity.cloneNode(true),h=humidity.cloneNode(true); e.value=room.entity||''; h.value=room.humidity_entity||'';
         const update=(field,value)=>{const rooms=this._config.rooms.map((x,i)=>i===index?{...x,[field]:value}:x);this.change('rooms',rooms);};
         name.addEventListener('change',()=>update('name',name.value));e.addEventListener('change',()=>{if(e.value)update('entity',e.value);});h.addEventListener('change',()=>update('humidity_entity',h.value));
-        const remove=document.createElement('button');remove.textContent='Remover';remove.type='button';remove.addEventListener('click',()=>{this.change('rooms',this._config.rooms.filter((_,i)=>i!==index));this.render();});
-        r.append(this.wrap('Nome',name),this.wrap('Temperatura',e),this.wrap('Umidade',h),remove);this.shadowRoot.querySelector('.rooms').append(r);
+        const remove=document.createElement('button');remove.textContent=t.remove;remove.type='button';remove.addEventListener('click',()=>{this.change('rooms',this._config.rooms.filter((_,i)=>i!==index));this.render();});
+        r.append(this.wrap(t.name,name),this.wrap(t.temperature,e),this.wrap(t.humidity,h),remove);this.shadowRoot.querySelector('.rooms').append(r);
       });
     }
   }
-  customElements.define('tempo-vivo-card-editor',TempoVivoEditor);
-  customElements.define('tempo-vivo-card',TempoVivoCard);
-  window.customCards=window.customCards||[];
-  window.customCards.push({type:'tempo-vivo-card',name:'Tempo Vivo',description:'Céu animado, clima atual e temperaturas da casa',preview:true,
-    getEntitySuggestion:(hass,id)=>id.startsWith('weather.')||isAggregate(hass.states[id])?{config:{type:'custom:tempo-vivo-card',entity:id}}:null});
+  if (!customElements.get('ceuvia-weather-card-editor')) customElements.define('ceuvia-weather-card-editor',CeuviaEditor);
+  customElements.define('ceuvia-weather-card',CeuviaCard);
+  if (!customElements.get('tempo-vivo-card-editor')) customElements.define('tempo-vivo-card-editor',class extends CeuviaEditor {});
+  if (!customElements.get('tempo-vivo-card')) customElements.define('tempo-vivo-card',class extends CeuviaCard {});
+  window.customCards=(window.customCards||[]).filter(card=>!['tempo-vivo-card','ceuvia-weather-card'].includes(card.type));
+  window.customCards.push({type:'ceuvia-weather-card',name:'Ceuvia Weather Card',description:'Clima animado · Animated weather and indoor temperatures',preview:true,
+    getEntitySuggestion:(hass,id)=>id.startsWith('weather.')||isAggregate(hass.states[id])?{config:{type:'custom:ceuvia-weather-card',entity:id}}:null});
+  window.ceuviaVersion=VERSION;
   window.tempoVivoVersion=VERSION;
 })();
 </script>
@@ -633,7 +702,7 @@ const sample={language:'pt-BR',locale:{language:'pt-BR'},themes:{darkMode:true},
  'binary_sensor.calor':{state:'off',attributes:{friendly_name:'Alerta de onda de calor'}},
  'sun.sun':{state:'above_horizon',attributes:{next_rising:'2026-09-30T09:15:00Z',next_setting:'2026-09-29T20:16:00Z'}}
 }};
-let config={type:'custom:tempo-vivo-card',entity:'weather.casa',title:'Tempo agora',location:'Minha casa',indoor_temperature:'sensor.temperatura_casa',indoor_humidity:'sensor.umidade_casa',heat_alert:'binary_sensor.calor',theme:'dark'};
+let config={type:'custom:ceuvia-weather-card',entity:'weather.casa',title:'Tempo agora',location:'Minha casa',indoor_temperature:'sensor.temperatura_casa',indoor_humidity:'sensor.umidade_casa',heat_alert:'binary_sensor.calor',theme:'dark'};
 const card=document.getElementById('card');card.setConfig(config);card.hass=structuredClone(sample);
 const climates=[['Sol','sunny'],['Nuvens','partlycloudy'],['Chuva','rainy'],['Temporal','lightning-rainy'],['Onda de calor','heat'],['Noite','clear-night'],['Neve','snowy'],['Neblina','fog'],['Vento','windy']];
 function setWeather(key){sample.states['weather.casa'].state=key==='heat'?'sunny':key;sample.states['weather.casa'].attributes.temperature=key==='heat'?38:27;sample.states['binary_sensor.calor'].state=key==='heat'?'on':'off';sample.states['sun.sun'].state=key==='clear-night'?'below_horizon':'above_horizon';card.hass=structuredClone(sample);document.querySelectorAll('#weather-buttons button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.condition===key)));}
@@ -643,12 +712,12 @@ document.getElementById('theme').addEventListener('change',e=>{config.theme=e.ta
 document.getElementById('quality').addEventListener('change',e=>{config.animation_quality=e.target.value;card.setConfig(config)});
 document.getElementById('rooms').addEventListener('click',()=>{if(config.rooms)delete config.rooms;else config.rooms=[{name:'Sala',entity:'sensor.sala'},{name:'Quarto',entity:'sensor.quarto'},{name:'Cozinha',entity:'sensor.cozinha'}];card.setConfig(config)});
 document.getElementById('update-temp').addEventListener('click',()=>{sample.states['sensor.temperatura_casa'].state=String(Number(sample.states['sensor.temperatura_casa'].state)+.1);card.hass=structuredClone(sample)});
-document.getElementById('edit').addEventListener('click',()=>{const panel=document.getElementById('editor');panel.hidden=!panel.hidden;if(!panel.children.length){const editor=document.createElement('tempo-vivo-card-editor');panel.append(editor);editor.setConfig(config);editor.hass=sample;editor.addEventListener('config-changed',e=>{config=e.detail.config;card.setConfig(config)})}});
+document.getElementById('edit').addEventListener('click',()=>{const panel=document.getElementById('editor');panel.hidden=!panel.hidden;if(!panel.children.length){const editor=document.createElement('ceuvia-weather-card-editor');panel.append(editor);editor.setConfig(config);editor.hass=sample;editor.addEventListener('config-changed',e=>{config=e.detail.config;card.setConfig(config)})}});
 window.tvTestResult=null;
 document.getElementById('run-tests').addEventListener('click',async()=>{
  const report=document.getElementById('report');report.replaceChildren();const cases=[];
  const check=(name,ok)=>{cases.push({name,ok:Boolean(ok)});const row=document.createElement('div');row.className='case'+(ok?'':' fail');row.textContent=(ok?'PASS · ':'FAIL · ')+name;report.append(row)};
- const test=document.createElement('tempo-vivo-card');test.style.cssText='width:440px;position:absolute;left:-10000px;top:0';document.body.append(test);
+ const test=document.createElement('ceuvia-weather-card');test.style.cssText='width:440px;position:absolute;left:-10000px;top:0';document.body.append(test);
  const tc={entity:'weather.casa',indoor_temperature:'sensor.temperatura_casa',indoor_humidity:'sensor.umidade_casa',animation:false};const h=structuredClone(sample);h.states['weather.casa'].state='sunny';h.states['weather.casa'].attributes.temperature=27;
  try{
  test.setConfig(tc);test.hass=h;const q=s=>test.shadowRoot.querySelector(s);
@@ -662,11 +731,16 @@ document.getElementById('run-tests').addEventListener('click',async()=>{
  h.states['weather.casa'].state='rainy';h.states['weather.casa'].attributes.temperature_unit='°C';h.states['weather.casa'].attributes.temperature=38;test.hass=structuredClone(h);check('Chuva mantém cena de chuva mesmo com calor',test._scene.current.rain>0&&test._scene.current.heat===0);
  h.states['weather.casa'].state='sunny';test.hass=structuredClone(h);check('Calor intenso muda a cena',test._scene.current.heat===1&&q('.alert').textContent.includes('Calor intenso'));
  test.setConfig({...tc,heat_threshold:false});check('Limite de calor pode ser desligado',test._scene.current.heat===0);
- const registration=window.customCards.find(x=>x.type==='tempo-vivo-card');check('Sugestão para weather e recusa de entidade incompatível',registration.getEntitySuggestion(h,'weather.casa')?.config.entity==='weather.casa'&&registration.getEntitySuggestion(h,'sensor.umidade_casa')===null);
- const stub=customElements.get('tempo-vivo-card').getStubConfig(h);check('Configuração inicial encontra entidade weather',stub.entity==='weather.casa');
+ const registration=window.customCards.find(x=>x.type==='ceuvia-weather-card');check('Sugestão para weather e recusa de entidade incompatível',registration.getEntitySuggestion(h,'weather.casa')?.config.entity==='weather.casa'&&registration.getEntitySuggestion(h,'sensor.umidade_casa')===null);
+ const stub=customElements.get('ceuvia-weather-card').getStubConfig(h);check('Configuração inicial encontra entidade weather',stub.entity==='weather.casa');
  test.setConfig({...tc,rooms:[{name:'Quarto',entity:'sensor.quarto'}]});check('Temperatura de cômodo funciona',q('.room-name').textContent==='Quarto'&&q('.room-value').textContent.includes('23,2'));
  let more=null;test.addEventListener('hass-more-info',e=>more=e.detail.entityId);q('.home-temp').click();check('Clique abre a entidade correta',more==='sensor.temperatura_casa');
- const editor=document.createElement('tempo-vivo-card-editor');document.body.append(editor);editor.hass=h;editor.setConfig(tc);let changed=null;editor.addEventListener('config-changed',e=>changed=e.detail.config);const title=editor.shadowRoot.querySelector('[data-key=title]');title.value='Minha sala';title.dispatchEvent(new Event('change'));check('Editor emite configuração para Home Assistant',changed?.title==='Minha sala');const quality=editor.shadowRoot.querySelector('[data-key=animation_quality]');quality.value='high';quality.dispatchEvent(new Event('change'));check('Editor salva a qualidade escolhida',changed?.animation_quality==='high');const timing=editor.shadowRoot.querySelector('[data-key=transition_duration]');timing.value='6';timing.dispatchEvent(new Event('change'));check('Editor salva a duração escolhida',changed?.transition_duration===6);editor.remove();
+ const editor=document.createElement('ceuvia-weather-card-editor');document.body.append(editor);editor.hass=h;editor.setConfig(tc);let changed=null;editor.addEventListener('config-changed',e=>changed=e.detail.config);const title=editor.shadowRoot.querySelector('[data-key=title]');title.value='Minha sala';title.dispatchEvent(new Event('change'));check('Editor emite configuração para Home Assistant',changed?.title==='Minha sala');const quality=editor.shadowRoot.querySelector('[data-key=animation_quality]');quality.value='high';quality.dispatchEvent(new Event('change'));check('Editor salva a qualidade escolhida',changed?.animation_quality==='high');const timing=editor.shadowRoot.querySelector('[data-key=transition_duration]');timing.value='6';timing.dispatchEvent(new Event('change'));check('Editor salva a duração escolhida',changed?.transition_duration===6);editor.remove();
+ test.setConfig({...tc,language:'en'});test.hass=h;check('Idioma inglês traduz o clima e a casa',q('.condition').textContent==='Sunny'&&q('.house .home-label').textContent==='Home temperature');
+ const english=document.createElement('ceuvia-weather-card-editor');document.body.append(english);english.setConfig({...tc,language:'en'});english.hass=h;check('Editor inglês traduz os controles',english.shadowRoot.textContent.includes('Animation quality')&&english.shadowRoot.textContent.includes('Home temperature'));english.remove();
+ h.states['climate.quarto']={state:'heat',attributes:{current_temperature:23.8}};test.setConfig({...tc,rooms:[{entity:'climate.quarto',name:'Quarto'}]});test.hass=h;check('Cômodos aceitam a temperatura de uma entidade climate',q('.room-value').textContent.includes('23,8'));
+ test.setConfig({...tc,language:'auto'});const en=structuredClone(h);en.locale.language='en';test.hass=en;check('Idioma automático acompanha o Home Assistant',q('.condition').textContent==='Sunny');test.hass=h;
+ h.states['sensor.ceuvia']={state:'unavailable',attributes:{source_entities:{weather:'weather.casa',indoor_temperature:'sensor.temperatura_casa'}}};h.states['weather.casa'].state='unavailable';test.setConfig({entity:'sensor.ceuvia',animation:false});test.hass=h;check('Agregado indisponível preserva a temperatura da casa',q('.condition').textContent==='Clima indisponível'&&q('.home-temp').textContent.includes('26,3'));h.states['weather.casa'].state='sunny';test.setConfig(tc);test.hass=h;
  const scene=test._scene;scene.setMotion(true,false);scene.setActive(false);scene.setWeather('sunny',false,false);scene.current=scene.target('sunny',false,false);scene.transition=null;scene.setWeather('rainy',false,false);const start=scene.transition.start,duration=scene.transition.duration;scene.update(start+duration*.3);check('Nuvens chegam antes da chuva',scene.current.cloud>0&&scene.current.rain===0);scene.update(start+duration+50);check('Transição termina no clima solicitado',scene.current.cloud===1&&scene.current.rain>.5&&scene.transition===null);
  scene.setWeather('sunny',false,false);const returning=scene.transition.start;scene.update(returning+scene.transition.duration*.2);check('Chuva começa a parar antes de as nuvens saírem',scene.current.cloud===1&&scene.current.rain<.55);scene.update(returning+scene.transition.duration*.6);check('Chuva termina durante a abertura do céu',scene.current.rain===0&&scene.current.cloud>0);scene.update(returning+scene.transition.duration+10);
  check('Texturas de céu são compartilhadas entre cards',scene.textures===card._scene.textures);

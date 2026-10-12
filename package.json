@@ -1,11 +1,14 @@
 {
-  "name": "tempo-vivo-card",
-  "version": "2.1.0",
+  "name": "ceuvia-weather-card",
+  "version": "3.0.0",
   "private": true,
   "scripts": {
-    "check": "node --check custom_components/tempo_vivo/tempo-vivo-card.js",
+    "check": "node --check custom_components/tempo_vivo/ceuvia-weather-card.js",
     "build:demo": "python3 tools/build_demo.py",
-    "test": "node tests/browser-check.cjs"
+    "test": "node tests/browser-check.cjs",
+    "build:release": "python3 tools/build_release.py"
   },
-  "devDependencies": { "playwright": "^1.56.0" }
+  "devDependencies": {
+    "playwright": "1.56.0"
+  }
 }
